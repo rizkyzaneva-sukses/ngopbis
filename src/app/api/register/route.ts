@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { formatNoWa, validateNoWa } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { sendWhatsAppMessage, renderTemplate, DEFAULT_TEMPLATE_KONFIRMASI, type NotifConfig } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit("register:" + getClientIp(req), 20, 60000)) {
+    return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 });
+  }
+
   const body = await req.json();
   const { eventSlug, noWa, nama, domisili, namaBisnis, statusKeanggotaan, sumberInformasi, jawabanKustom } = body;
 
@@ -16,7 +22,10 @@ export async function POST(req: NextRequest) {
 
   const event = await prisma.event.findUnique({
     where: { slug: eventSlug },
-    include: { _count: { select: { registrasi: true } } },
+    include: {
+      _count: { select: { registrasi: true } },
+      questions: { orderBy: { urutan: "asc" } },
+    },
   });
 
   if (!event || event.status !== "PUBLISHED") {
@@ -25,6 +34,27 @@ export async function POST(req: NextRequest) {
 
   if (event.kuota && event._count.registrasi >= event.kuota) {
     return NextResponse.json({ error: "Kuota pendaftaran sudah penuh" }, { status: 400 });
+  }
+
+  const jawabanMap = new Map<string, string>();
+  if (jawabanKustom && Array.isArray(jawabanKustom)) {
+    for (const jawaban of jawabanKustom) {
+      if (jawaban.eventQuestionId) {
+        jawabanMap.set(jawaban.eventQuestionId, jawaban.nilai != null ? String(jawaban.nilai) : "");
+      }
+    }
+  }
+
+  for (const q of event.questions) {
+    const nilai = (jawabanMap.get(q.id) || "").trim();
+    if (q.wajib && !nilai) {
+      return NextResponse.json({ error: `Pertanyaan wajib belum diisi: ${q.label}` }, { status: 400 });
+    }
+    if (q.tipe === "NUMBER" && nilai) {
+      if (isNaN(Number(nilai))) {
+        return NextResponse.json({ error: `Jawaban untuk ${q.label} harus berupa angka` }, { status: 400 });
+      }
+    }
   }
 
   const normalizedNoWa = formatNoWa(noWa);
@@ -54,6 +84,21 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    try {
+      const cfg = event.notifConfig as NotifConfig | null;
+      if (cfg?.konfirmasiAktif) {
+        const template = cfg.templateKonfirmasi || DEFAULT_TEMPLATE_KONFIRMASI;
+        const text = renderTemplate(template, {
+          nama,
+          event: event.nama,
+          tanggal: new Date(event.tanggalMulai).toLocaleString("id-ID"),
+          lokasi: event.lokasi || "-",
+        });
+        sendWhatsAppMessage(normalizedNoWa, text).catch(() => {});
+      }
+    } catch {}
+
     return NextResponse.json({ ok: true, registrasiId: existingReg.id, updated: true });
   }
 
@@ -77,6 +122,20 @@ export async function POST(req: NextRequest) {
       }
     }
   }
+
+  try {
+    const cfg = event.notifConfig as NotifConfig | null;
+    if (cfg?.konfirmasiAktif) {
+      const template = cfg.templateKonfirmasi || DEFAULT_TEMPLATE_KONFIRMASI;
+      const text = renderTemplate(template, {
+        nama,
+        event: event.nama,
+        tanggal: new Date(event.tanggalMulai).toLocaleString("id-ID"),
+        lokasi: event.lokasi || "-",
+      });
+      sendWhatsAppMessage(normalizedNoWa, text).catch(() => {});
+    }
+  } catch {}
 
   return NextResponse.json({ ok: true, registrasiId: registrasi.id }, { status: 201 });
 }

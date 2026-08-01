@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -50,6 +51,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (thankYouConfig !== undefined) data.thankYouConfig = thankYouConfig;
 
     const event = await prisma.event.update({ where: { id }, data });
+
+    await logAudit({
+      adminId: session.adminId,
+      adminNama: session.adminNama,
+      aksi: "EVENT_UPDATE",
+      entitas: "Event",
+      entitasId: id,
+      detail: { fields: Object.keys(data) },
+    });
+
     return NextResponse.json(event, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Failed to update event", error);
@@ -65,5 +76,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   }
 
   await prisma.event.delete({ where: { id } });
+
+  await logAudit({
+    adminId: session.adminId,
+    adminNama: session.adminNama,
+    aksi: "EVENT_DELETE",
+    entitas: "Event",
+    entitasId: id,
+  });
+
   return NextResponse.json({ ok: true });
 }

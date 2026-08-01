@@ -8,15 +8,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [admin, setAdmin] = useState<{ adminNama?: string } | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const isLoginPage = pathname === "/admin/login";
 
+  const [loading, setLoading] = useState(() => !isLoginPage);
+
   useEffect(() => {
-    if (isLoginPage) {
-      setLoading(false);
-      return;
-    }
+    if (isLoginPage) return;
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
@@ -51,8 +49,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="text-lg font-bold font-mono tracking-tight">
             Event Pendidikan
           </Link>
-          <Link href="/admin/events" className="text-sm text-gray-400 hover:text-white transition-colors">
+          <Link href="/admin" className={`text-sm transition-colors ${pathname === "/admin" ? "text-white" : "text-gray-400 hover:text-white"}`}>
+            Dashboard
+          </Link>
+          <Link href="/admin/events" className={`text-sm transition-colors ${pathname.startsWith("/admin/events") ? "text-white" : "text-gray-400 hover:text-white"}`}>
             Events
+          </Link>
+          <Link href="/admin/participants" className={`text-sm transition-colors ${pathname.startsWith("/admin/participants") ? "text-white" : "text-gray-400 hover:text-white"}`}>
+            Peserta
+          </Link>
+          <Link href="/admin/admins" className={`text-sm transition-colors ${pathname.startsWith("/admin/admins") ? "text-white" : "text-gray-400 hover:text-white"}`}>
+            Admin
+          </Link>
+          <Link href="/admin/audit-log" className={`text-sm transition-colors ${pathname.startsWith("/admin/audit-log") ? "text-white" : "text-gray-400 hover:text-white"}`}>
+            Audit Log
+          </Link>
+          <Link href="/admin/guide" className={`text-sm transition-colors ${pathname.startsWith("/admin/guide") ? "text-white" : "text-gray-400 hover:text-white"}`}>
+            Panduan
           </Link>
         </div>
         <div className="flex items-center gap-4">

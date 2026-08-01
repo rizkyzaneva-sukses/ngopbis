@@ -11,5 +11,6 @@ export async function GET() {
     adminId: session.adminId,
     adminNama: session.adminNama,
     adminEmail: session.adminEmail,
+    adminRole: session.adminRole || "ADMIN",
   });
 }

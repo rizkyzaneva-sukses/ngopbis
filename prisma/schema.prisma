@@ -47,6 +47,7 @@ model Event {
   kuota          Int?
   status         EventStatus   @default(DRAFT)
   thankYouConfig Json?
+  notifConfig    Json?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -121,4 +122,18 @@ model Admin {
   passwordHash String
   role         AdminRole @default(ADMIN)
   createdAt    DateTime  @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String?
+  adminNama String?
+  aksi      String
+  entitas   String
+  entitasId String?
+  detail    Json?
+  createdAt DateTime @default(now())
+
+  @@index([entitas, entitasId])
+  @@index([createdAt])
 }

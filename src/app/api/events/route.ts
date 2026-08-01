@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
+import { logAudit } from "@/lib/audit";
 import { generateSlug } from "@/lib/utils";
 
 export async function GET() {
@@ -51,6 +52,15 @@ export async function POST(req: NextRequest) {
       warnaAksen: warnaAksen || "#2563eb",
       kuota: kuota ? parseInt(kuota) : null,
     },
+  });
+
+  await logAudit({
+    adminId: session.adminId,
+    adminNama: session.adminNama,
+    aksi: "EVENT_CREATE",
+    entitas: "Event",
+    entitasId: event.id,
+    detail: { nama: event.nama, slug: event.slug },
   });
 
   return NextResponse.json(event, { status: 201 });

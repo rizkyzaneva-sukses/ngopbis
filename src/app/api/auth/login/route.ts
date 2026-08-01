@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { compareSync } from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -19,8 +20,17 @@ export async function POST(req: NextRequest) {
   session.adminId = admin.id;
   session.adminNama = admin.nama;
   session.adminEmail = admin.email;
+  session.adminRole = admin.role;
   session.isLoggedIn = true;
   await session.save();
+
+  await logAudit({
+    adminId: admin.id,
+    adminNama: admin.nama,
+    aksi: "LOGIN",
+    entitas: "Admin",
+    entitasId: admin.id,
+  });
 
   return NextResponse.json({ ok: true, nama: admin.nama });
 }

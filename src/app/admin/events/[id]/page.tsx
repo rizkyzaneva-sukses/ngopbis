@@ -40,7 +40,7 @@ interface Registrasi {
   jawaban: Array<{ nilai: string; eventQuestion: { label: string } }>;
 }
 
-type Tab = "detail" | "questions" | "thankyou" | "checkin_qr" | "registrations" | "report";
+type Tab = "detail" | "questions" | "thankyou" | "notifikasi" | "checkin_qr" | "registrations" | "report";
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -83,6 +83,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     { key: "detail", label: "Detail" },
     { key: "questions", label: "Pertanyaan Kustom" },
     { key: "thankyou", label: "Thank You" },
+    { key: "notifikasi", label: "Notifikasi WA" },
     { key: "checkin_qr", label: "QR Check-in" },
     { key: "registrations", label: `Peserta (${event._count.registrasi})` },
     { key: "report", label: "Laporan" },
@@ -291,7 +292,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         <ThankYouTab eventId={id} config={event.thankYouConfig} onSave={updateEvent} saving={saving} />
       )}
 
-      {tab === "checkin_qr" && <CheckinQRTab slug={event.slug} eventNama={event.nama} />}
+      {tab === "notifikasi" && <NotifTab eventId={id} />}
+
+      {tab === "checkin_qr" && <CheckinQRTab slug={event.slug} eventNama={event.nama} eventId={id} />}
 
       {tab === "registrations" && (
         <div>
@@ -358,9 +361,77 @@ function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; ques
   const [newWajib, setNewWajib] = useState(false);
   const [newOpsi, setNewOpsi] = useState("");
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editWajib, setEditWajib] = useState(false);
+  const [editOpsi, setEditOpsi] = useState("");
 
   const tipeOptions = ["TEXT", "SINGLE_CHOICE", "MULTIPLE_CHOICE", "DROPDOWN", "NUMBER", "FILE_UPLOAD"];
   const needsOpsi = ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "DROPDOWN"].includes(newTipe);
+  const editNeedsOpsi = (tipe: string) => ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "DROPDOWN"].includes(tipe);
+
+  const bulkUpdate = async (list: EventQuestion[]) => {
+    await fetch(`/api/events/${eventId}/questions`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        questions: list.map((q, i) => ({
+          id: q.id,
+          label: q.label,
+          tipe: q.tipe,
+          opsiJawaban: q.opsiJawaban,
+          wajib: q.wajib,
+          urutan: i,
+        })),
+      }),
+    });
+    onRefresh();
+  };
+
+  const handleReorder = async (idx: number, dir: -1 | 1) => {
+    const newOrder = [...questions];
+    const target = idx + dir;
+    if (target < 0 || target >= newOrder.length) return;
+    [newOrder[idx], newOrder[target]] = [newOrder[target], newOrder[idx]];
+    await bulkUpdate(newOrder);
+  };
+
+  const handleDuplicate = async (q: EventQuestion) => {
+    await fetch(`/api/events/${eventId}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: `${q.label} (salinan)`,
+        tipe: q.tipe,
+        opsiJawaban: q.opsiJawaban,
+        wajib: q.wajib,
+        urutan: questions.length,
+      }),
+    });
+    onRefresh();
+  };
+
+  const startEdit = (q: EventQuestion) => {
+    setEditingId(q.id);
+    setEditLabel(q.label);
+    setEditWajib(q.wajib);
+    setEditOpsi(q.opsiJawaban ? q.opsiJawaban.join(", ") : "");
+  };
+
+  const handleSaveEdit = async (q: EventQuestion, idx: number) => {
+    const updated: EventQuestion = {
+      ...q,
+      label: editLabel,
+      wajib: editWajib,
+      opsiJawaban: editNeedsOpsi(q.tipe)
+        ? editOpsi.split(",").map((s) => s.trim()).filter(Boolean)
+        : null,
+    };
+    const list = [...questions];
+    list[idx] = updated;
+    await bulkUpdate(list);
+    setEditingId(null);
+  };
 
   const handleAdd = async () => {
     if (!newLabel) return;
@@ -400,14 +471,48 @@ function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; ques
           {questions.map((q, idx) => (
             <div key={q.id} className="flex items-center gap-3 bg-[#111638] border border-[#1e2450] rounded-lg p-3">
               <span className="text-gray-500 text-xs w-6">{idx + 1}.</span>
-              <div className="flex-1">
-                <span className="text-sm">{q.label}</span>
-                <span className="text-xs text-gray-500 ml-2">{q.tipe}</span>
-                {q.wajib && <span className="text-xs text-red-400 ml-2">*wajib</span>}
-              </div>
-              <button onClick={() => handleDelete(q.id)} className="text-red-400 hover:text-red-300 text-xs cursor-pointer">
-                Hapus
-              </button>
+              {editingId === q.id ? (
+                <div className="flex-1 space-y-2">
+                  <input
+                    value={editLabel}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    placeholder="Label pertanyaan"
+                    className="w-full bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  {editNeedsOpsi(q.tipe) && (
+                    <input
+                      value={editOpsi}
+                      onChange={(e) => setEditOpsi(e.target.value)}
+                      placeholder="Opsi jawaban (pisahkan dengan koma)"
+                      className="w-full bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  )}
+                  <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+                    <input type="checkbox" checked={editWajib} onChange={(e) => setEditWajib(e.target.checked)} className="cursor-pointer" />
+                    Wajib diisi
+                  </label>
+                </div>
+              ) : (
+                <div className="flex-1">
+                  <span className="text-sm">{q.label}</span>
+                  <span className="text-xs text-gray-500 ml-2">{q.tipe}</span>
+                  {q.wajib && <span className="text-xs text-red-400 ml-2">*wajib</span>}
+                </div>
+              )}
+              {editingId === q.id ? (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => handleSaveEdit(q, idx)} className="text-green-400 hover:text-green-300 text-xs cursor-pointer">Simpan</button>
+                  <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-300 text-xs cursor-pointer">Batal</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => handleReorder(idx, -1)} disabled={idx === 0} className="text-gray-400 hover:text-white disabled:text-gray-700 text-xs cursor-pointer">&uarr;</button>
+                  <button onClick={() => handleReorder(idx, 1)} disabled={idx === questions.length - 1} className="text-gray-400 hover:text-white disabled:text-gray-700 text-xs cursor-pointer">&darr;</button>
+                  <button onClick={() => startEdit(q)} className="text-blue-400 hover:text-blue-300 text-xs cursor-pointer">Edit</button>
+                  <button onClick={() => handleDuplicate(q)} className="text-yellow-400 hover:text-yellow-300 text-xs cursor-pointer">Duplikat</button>
+                  <button onClick={() => handleDelete(q.id)} className="text-red-400 hover:text-red-300 text-xs cursor-pointer">Hapus</button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -546,7 +651,7 @@ function ReportTab({ registrations, event }: { registrations: Registrasi[]; even
   );
 }
 
-function CheckinQRTab({ slug, eventNama }: { slug: string; eventNama: string }) {
+function CheckinQRTab({ slug, eventNama, eventId }: { slug: string; eventNama: string; eventId: string }) {
   const checkinUrl = typeof window !== "undefined"
     ? `${window.location.origin}/event/${slug}/checkin`
     : `/event/${slug}/checkin`;
@@ -593,6 +698,12 @@ function CheckinQRTab({ slug, eventNama }: { slug: string; eventNama: string }) 
 
   return (
     <div className="max-w-xl">
+      <Link
+        href={`/admin/events/${eventId}/checkin`}
+        className="block w-full text-center bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-sm font-medium transition-colors cursor-pointer mb-6"
+      >
+        Buka Mode Check-in Panitia
+      </Link>
       <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-6 text-center">
         <h3 className="text-lg font-semibold mb-2">QR Code Check-in</h3>
         <p className="text-sm text-gray-400 mb-6">
@@ -637,6 +748,133 @@ function CheckinQRTab({ slug, eventNama }: { slug: string; eventNama: string }) 
           <li>Peserta klik &quot;Konfirmasi Hadir&quot;</li>
           <li>Kalau nomor tidak ketemu, panitia bisa manual check-in dari tab Peserta</li>
         </ol>
+      </div>
+    </div>
+  );
+}
+
+function NotifTab({ eventId }: { eventId: string }) {
+  const [konfirmasiAktif, setKonfirmasiAktif] = useState(false);
+  const [reminderAktif, setReminderAktif] = useState(false);
+  const [templateKonfirmasi, setTemplateKonfirmasi] = useState("");
+  const [templateReminder, setTemplateReminder] = useState("");
+  const [wahaConfigured, setWahaConfigured] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    fetch(`/api/events/${eventId}/notif`, { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Gagal memuat notifikasi");
+        setKonfirmasiAktif(data.konfirmasiAktif);
+        setReminderAktif(data.reminderAktif);
+        setTemplateKonfirmasi(data.templateKonfirmasi);
+        setTemplateReminder(data.templateReminder);
+        setWahaConfigured(data.wahaConfigured);
+      })
+      .catch((e) => setMsg(e instanceof Error ? e.message : "Gagal memuat notifikasi"))
+      .finally(() => setLoading(false));
+  }, [eventId]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/events/${eventId}/notif`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ konfirmasiAktif, reminderAktif, templateKonfirmasi, templateReminder }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menyimpan");
+      setMsg("Pengaturan notifikasi disimpan");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Gagal menyimpan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    setSending(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/events/${eventId}/reminder`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mengirim reminder");
+      setMsg(`Reminder terkirim: ${data.sent} berhasil, ${data.failed} gagal dari ${data.total} peserta`);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Gagal mengirim reminder");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) return <p className="text-gray-400">Loading...</p>;
+
+  return (
+    <div className="max-w-2xl space-y-4">
+      <div className="flex items-center gap-3">
+        <span className={`text-xs px-3 py-1 rounded-full ${wahaConfigured ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+          {wahaConfigured ? "WAHA Terhubung" : "WAHA belum dikonfigurasi"}
+        </span>
+        {msg && (
+          <span className={`text-sm ${msg.includes("berhasil") || msg.includes("terkirim") ? "text-green-400" : "text-red-400"}`}>
+            {msg}
+          </span>
+        )}
+      </div>
+
+      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 space-y-3">
+        <label className="flex items-center gap-3 text-sm cursor-pointer">
+          <input type="checkbox" checked={konfirmasiAktif} onChange={(e) => setKonfirmasiAktif(e.target.checked)} className="cursor-pointer" />
+          <div>
+            <span className="font-medium">Pesan Konfirmasi Otomatis</span>
+            <p className="text-xs text-gray-500">Dikirim saat peserta selesai mendaftar</p>
+          </div>
+        </label>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Template Konfirmasi</label>
+          <textarea
+            value={templateKonfirmasi}
+            onChange={(e) => setTemplateKonfirmasi(e.target.value)}
+            rows={4}
+            className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">Variabel: {`{nama}`}, {`{event}`}, {`{tanggal}`}, {`{lokasi}`}</p>
+        </div>
+      </div>
+
+      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 space-y-3">
+        <label className="flex items-center gap-3 text-sm cursor-pointer">
+          <input type="checkbox" checked={reminderAktif} onChange={(e) => setReminderAktif(e.target.checked)} className="cursor-pointer" />
+          <div>
+            <span className="font-medium">Pesan Reminder Otomatis</span>
+            <p className="text-xs text-gray-500">Dijadwalkan sebelum event dimulai</p>
+          </div>
+        </label>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Template Reminder</label>
+          <textarea
+            value={templateReminder}
+            onChange={(e) => setTemplateReminder(e.target.value)}
+            rows={4}
+            className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">Variabel: {`{nama}`}, {`{event}`}, {`{tanggal}`}, {`{lokasi}`}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+          {saving ? "Menyimpan..." : "Simpan"}
+        </button>
+        <button onClick={handleSendReminder} disabled={sending || !wahaConfigured} className="bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+          {sending ? "Mengirim..." : "Kirim Reminder Sekarang"}
+        </button>
       </div>
     </div>
   );

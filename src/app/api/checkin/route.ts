@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { formatNoWa } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
+  if (!checkRateLimit("checkin:" + getClientIp(req), 30, 60000)) {
+    return NextResponse.json({ error: "Terlalu banyak permintaan." }, { status: 429 });
+  }
+
   const { eventSlug, noWa, confirm } = await req.json();
 
   if (!eventSlug || !noWa) {

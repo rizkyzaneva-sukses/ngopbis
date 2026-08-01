@@ -1,28 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 
-interface Event {
+interface EventItem {
   id: string;
   nama: string;
   slug: string;
   status: string;
   tanggalMulai: string;
   lokasi: string | null;
+  kuota: number | null;
+  warnaAksen: string | null;
   _count: { registrasi: number };
 }
 
-export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+type SortKey = "terbaru" | "tanggal" | "peserta";
 
-  useEffect(() => {
-    fetch("/api/events")
+export default function EventsPage() {
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Semua");
+  const [sort, setSort] = useState<SortKey>("terbaru");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 2500);
+  }, []);
+
+  const fetchEvents = useCallback(() => {
+    fetch("/api/events", { cache: "no-store" })
       .then((r) => r.json())
-      .then(setEvents)
+      .then((data) => setEvents(Array.isArray(data) ? data : []))
+      .catch(() => setEvents([]))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const statusColor: Record<string, string> = {
     DRAFT: "bg-gray-500/20 text-gray-400",
@@ -31,60 +50,219 @@ export default function EventsPage() {
     SELESAI: "bg-blue-500/20 text-blue-400",
   };
 
+  const filtered = events
+    .filter((e) => {
+      const q = search.toLowerCase().trim();
+      const matchSearch = !q || e.nama.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q);
+      const matchStatus = statusFilter === "Semua" || e.status === statusFilter;
+      return matchSearch && matchStatus;
+    })
+    .sort((a, b) => {
+      if (sort === "terbaru") {
+        return 0;
+      }
+      if (sort === "tanggal") {
+        const da = new Date(a.tanggalMulai).getTime();
+        const db = new Date(b.tanggalMulai).getTime();
+        return da - db;
+      }
+      return b._count.registrasi - a._count.registrasi;
+    });
+
+  const handleCopyLink = async (e: React.MouseEvent, slug: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/event/${slug}`);
+      showToast("Link disalin");
+    } catch {
+      showToast("Gagal menyalin link", "error");
+    }
+  };
+
+  const handleDuplicate = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/events/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      showToast("Event diduplikat");
+      fetchEvents();
+    } catch {
+      showToast("Gagal menduplikat event", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Hapus event ini? Tindakan ini tidak dapat dibatalkan.")) return;
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/events/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      showToast("Event dihapus");
+      fetchEvents();
+    } catch {
+      showToast("Gagal menghapus event", "error");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div>
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-sm font-medium shadow-lg ${
+            toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
+          }`}
+        >
+          {toast.msg}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold">Daftar Event</h1>
         <Link
           href="/admin/events/new"
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           + Buat Event
         </Link>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Cari nama atau slug..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+        >
+          <option value="Semua">Semua Status</option>
+          <option value="DRAFT">DRAFT</option>
+          <option value="PUBLISHED">PUBLISHED</option>
+          <option value="CLOSED">CLOSED</option>
+          <option value="SELESAI">SELESAI</option>
+        </select>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortKey)}
+          className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+        >
+          <option value="terbaru">Terbaru</option>
+          <option value="tanggal">Tanggal Terdekat</option>
+          <option value="peserta">Peserta Terbanyak</option>
+        </select>
+      </div>
+
       {loading ? (
         <p className="text-gray-400">Loading...</p>
-      ) : events.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <p>Belum ada event.</p>
-          <Link href="/admin/events/new" className="text-blue-400 hover:underline text-sm">
-            Buat event pertama
-          </Link>
+          <p>{events.length === 0 ? "Belum ada event." : "Tidak ada event yang cocok."}</p>
+          {events.length === 0 && (
+            <Link href="/admin/events/new" className="text-blue-400 hover:underline text-sm">
+              Buat event pertama
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid gap-4">
-          {events.map((event) => (
-            <Link
-              key={event.id}
-              href={`/admin/events/${event.id}`}
-              className="bg-[#111638] border border-[#1e2450] rounded-xl p-5 hover:border-blue-500/50 transition-colors block"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="font-semibold text-lg">{event.nama}</h2>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                    {event.lokasi && ` — ${event.lokasi}`}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-1 font-mono">/{event.slug}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">
-                    {event._count.registrasi} peserta
-                  </span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${statusColor[event.status] || ""}`}>
-                    {event.status}
-                  </span>
+          {filtered.map((event) => {
+            const count = event._count.registrasi;
+            const kuota = event.kuota;
+            const isFull = kuota !== null && count >= kuota;
+            const progress = kuota ? Math.min(100, (count / kuota) * 100) : 0;
+            const aksen = event.warnaAksen || "#2563eb";
+
+            return (
+              <div
+                key={event.id}
+                className="bg-[#111638] border border-[#1e2450] rounded-xl p-5 hover:border-blue-500/50 transition-colors"
+              >
+                <Link href={`/admin/events/${event.id}`} className="block">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                      <h2 className="font-semibold text-lg truncate">{event.nama}</h2>
+                      <p className="text-gray-400 text-sm mt-1">
+                        {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                        {event.lokasi && ` — ${event.lokasi}`}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-1 font-mono">/{event.slug}</p>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="text-sm text-gray-400">{count} peserta</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${statusColor[event.status] || ""}`}>
+                        {event.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    {kuota ? (
+                      <div>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className={isFull ? "text-red-400" : "text-gray-400"}>
+                            {count}/{kuota}
+                          </span>
+                          {isFull && <span className="text-red-400">Kuota Penuh</span>}
+                        </div>
+                        <div className="w-full h-1.5 bg-[#1e2450] rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${progress}%`, backgroundColor: aksen }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-500">Tanpa Kuota</span>
+                    )}
+                  </div>
+                </Link>
+
+                <div className="flex gap-2 mt-4 pt-4 border-t border-[#1e2450]">
+                  <button
+                    type="button"
+                    onClick={(e) => handleCopyLink(e, event.slug)}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    Copy Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDuplicate(e, event.id)}
+                    disabled={busyId === event.id}
+                    className="bg-[#1e2450] hover:bg-[#2a3170] px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Duplikat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDelete(e, event.id)}
+                    disabled={busyId === event.id}
+                    className="bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Hapus
+                  </button>
                 </div>
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

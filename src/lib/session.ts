@@ -5,6 +5,7 @@ export interface SessionData {
   adminId?: string;
   adminNama?: string;
   adminEmail?: string;
+  adminRole?: "SUPER_ADMIN" | "ADMIN";
   isLoggedIn?: boolean;
 }
 

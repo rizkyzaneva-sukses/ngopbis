@@ -1,0 +1,643 @@
+"use client";
+
+import { useEffect, useState, use, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+interface EventQuestion {
+  id: string;
+  label: string;
+  tipe: string;
+  opsiJawaban: string[] | null;
+  wajib: boolean;
+  urutan: number;
+}
+
+interface EventData {
+  id: string;
+  nama: string;
+  slug: string;
+  deskripsi: string | null;
+  lokasi: string | null;
+  googleMapsUrl: string | null;
+  tanggalMulai: string;
+  tanggalSelesai: string | null;
+  bannerUrl: string | null;
+  warnaAksen: string;
+  kuota: number | null;
+  status: string;
+  thankYouConfig: { heading?: string; message?: string; imageUrl?: string } | null;
+  questions: EventQuestion[];
+  _count: { registrasi: number };
+}
+
+interface Registrasi {
+  id: string;
+  status: string;
+  waktuDaftar: string;
+  waktuHadir: string | null;
+  peserta: { noWa: string; nama: string; domisili: string | null; namaBisnis: string | null; statusKeanggotaan: string | null; sumberInformasi: string | null };
+  jawaban: Array<{ nilai: string; eventQuestion: { label: string } }>;
+}
+
+type Tab = "detail" | "questions" | "thankyou" | "checkin_qr" | "registrations" | "report";
+
+export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [registrations, setRegistrations] = useState<Registrasi[]>([]);
+  const [tab, setTab] = useState<Tab>("detail");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  const fetchEvent = () =>
+    fetch(`/api/events/${id}`, { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || "Gagal memuat event");
+        return data;
+      })
+      .then((data) => { setEvent(data); setBannerUrl(data.bannerUrl); })
+      .finally(() => setLoading(false));
+
+  const fetchRegistrations = () =>
+    fetch(`/api/events/${id}/registrations`)
+      .then((r) => r.json())
+      .then((data) => setRegistrations(data));
+
+  useEffect(() => {
+    fetchEvent();
+  }, [id]);
+
+  useEffect(() => {
+    if (tab === "registrations" || tab === "report") fetchRegistrations();
+  }, [tab, id]);
+
+  if (loading || !event) return <p className="text-gray-400">Loading...</p>;
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "detail", label: "Detail" },
+    { key: "questions", label: "Pertanyaan Kustom" },
+    { key: "thankyou", label: "Thank You" },
+    { key: "checkin_qr", label: "QR Check-in" },
+    { key: "registrations", label: `Peserta (${event._count.registrasi})` },
+    { key: "report", label: "Laporan" },
+  ];
+
+  const updateEvent = async (data: Record<string, unknown>, redirectAfterSave = false) => {
+    setSaving(true);
+    setMsg("");
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Gagal menyimpan perubahan");
+
+      setEvent((current) => current ? { ...current, ...result } : result);
+      setBannerUrl(result.bannerUrl);
+      setMsg("Perubahan event berhasil diperbarui");
+      if (redirectAfterSave) {
+        setTimeout(() => router.push("/admin/events"), 800);
+      } else {
+        setTimeout(() => setMsg(""), 3000);
+      }
+    } catch (error) {
+      setMsg(error instanceof Error ? error.message : "Gagal menyimpan perubahan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDetailSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    await updateEvent({
+      nama: fd.get("nama"),
+      slug: fd.get("slug"),
+      deskripsi: fd.get("deskripsi"),
+      lokasi: fd.get("lokasi"),
+      googleMapsUrl: fd.get("googleMapsUrl") || null,
+      bannerUrl: bannerUrl || null,
+      tanggalMulai: fd.get("tanggalMulai"),
+      tanggalSelesai: fd.get("tanggalSelesai") || null,
+      warnaAksen: fd.get("warnaAksen"),
+      kuota: fd.get("kuota") || null,
+    }, true);
+  };
+
+  const handleStatusChange = (status: string) => updateEvent({ status });
+
+  const handleManualCheckin = async (registrasiId: string) => {
+    await fetch(`/api/events/${id}/registrations`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrasiId, status: "HADIR" }),
+    });
+    fetchRegistrations();
+  };
+
+  const handleExport = () => {
+    window.open(`/api/events/${id}/registrations/export`, "_blank");
+  };
+
+  const hadirCount = registrations.filter((r) => r.status === "HADIR").length;
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.push("/admin/events")} className="text-gray-400 hover:text-white cursor-pointer">&larr;</button>
+        <h1 className="text-xl font-bold">{event.nama}</h1>
+        <span className={`text-xs px-2 py-1 rounded-full ${
+          event.status === "PUBLISHED" ? "bg-green-500/20 text-green-400" :
+          event.status === "CLOSED" ? "bg-yellow-500/20 text-yellow-400" :
+          event.status === "SELESAI" ? "bg-blue-500/20 text-blue-400" :
+          "bg-gray-500/20 text-gray-400"
+        }`}>{event.status}</span>
+        {msg && (
+          <div className={`fixed right-6 top-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+            msg.includes("berhasil") ? "border-green-500/40 bg-green-950 text-green-300" : "border-red-500/40 bg-red-950 text-red-300"
+          }`} role="status">
+            {msg}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3 mb-6 text-sm">
+        <Link href={`/event/${event.slug}`} target="_blank" className="text-blue-400 hover:underline font-mono">
+          /event/{event.slug}
+        </Link>
+        <span className="text-gray-600">|</span>
+        {["DRAFT", "PUBLISHED", "CLOSED", "SELESAI"].map((s) => (
+          <button
+            key={s}
+            onClick={() => handleStatusChange(s)}
+            disabled={event.status === s}
+            className={`px-3 py-1 rounded text-xs transition-colors cursor-pointer ${event.status === s ? "bg-blue-600 text-white" : "bg-[#1e2450] text-gray-400 hover:text-white"}`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-1 mb-6 border-b border-[#1e2450]">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2 text-sm transition-colors cursor-pointer ${tab === t.key ? "text-white border-b-2 border-blue-500" : "text-gray-500 hover:text-gray-300"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "detail" && (
+        <form onSubmit={handleDetailSubmit} className="max-w-2xl space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Nama Event</label>
+            <input name="nama" defaultValue={event.nama} required className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Slug</label>
+            <input name="slug" defaultValue={event.slug} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 font-mono" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Tanggal Mulai</label>
+              <input name="tanggalMulai" type="datetime-local" defaultValue={event.tanggalMulai.slice(0, 16)} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Tanggal Selesai</label>
+              <input name="tanggalSelesai" type="datetime-local" defaultValue={event.tanggalSelesai?.slice(0, 16) || ""} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Lokasi</label>
+            <input name="lokasi" defaultValue={event.lokasi || ""} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Link Google Maps</label>
+            <input name="googleMapsUrl" defaultValue={event.googleMapsUrl || ""} placeholder="https://maps.google.com/..." className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Flyer / Banner</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) { setMsg("Ukuran file maksimal 5MB"); return; }
+                setUploadingBanner(true);
+                const fd = new FormData();
+                fd.append("file", file);
+                try {
+                  const res = await fetch("/api/upload", { method: "POST", body: fd });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error);
+                  setBannerUrl(data.url);
+                } catch {
+                  setMsg("Upload gagal");
+                } finally {
+                  setUploadingBanner(false);
+                }
+              }}
+              className="w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+            />
+            {uploadingBanner && <p className="text-xs text-gray-500 mt-1">Mengupload...</p>}
+            {bannerUrl && (
+              <div className="mt-2 relative inline-block">
+                <img src={bannerUrl} alt="Preview" className="max-h-32 rounded-lg" />
+                <button
+                  type="button"
+                  onClick={() => setBannerUrl(null)}
+                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Deskripsi</label>
+            <textarea name="deskripsi" defaultValue={event.deskripsi || ""} rows={4} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Warna Aksen</label>
+              <input name="warnaAksen" type="color" defaultValue={event.warnaAksen} className="h-10 w-full bg-[#111638] border border-[#1e2450] rounded-lg cursor-pointer" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Kuota</label>
+              <input name="kuota" type="number" min="1" defaultValue={event.kuota || ""} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+          </div>
+          <button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+            {saving ? "Menyimpan..." : "Simpan Perubahan"}
+          </button>
+        </form>
+      )}
+
+      {tab === "questions" && <QuestionsTab eventId={id} questions={event.questions} onRefresh={fetchEvent} />}
+
+      {tab === "thankyou" && (
+        <ThankYouTab eventId={id} config={event.thankYouConfig} onSave={updateEvent} saving={saving} />
+      )}
+
+      {tab === "checkin_qr" && <CheckinQRTab slug={event.slug} eventNama={event.nama} />}
+
+      {tab === "registrations" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-gray-400">{registrations.length} peserta terdaftar, {hadirCount} hadir</p>
+            <button onClick={handleExport} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer">
+              Export Excel
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1e2450] text-gray-400 text-left">
+                  <th className="pb-2 pr-4">No WA</th>
+                  <th className="pb-2 pr-4">Nama</th>
+                  <th className="pb-2 pr-4">Domisili</th>
+                  <th className="pb-2 pr-4">Status</th>
+                  <th className="pb-2 pr-4">Waktu Daftar</th>
+                  <th className="pb-2">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registrations.map((reg) => (
+                  <tr key={reg.id} className="border-b border-[#1e2450]/50">
+                    <td className="py-2 pr-4 font-mono text-xs">{reg.peserta.noWa}</td>
+                    <td className="py-2 pr-4">{reg.peserta.nama}</td>
+                    <td className="py-2 pr-4 text-gray-400">{reg.peserta.domisili}</td>
+                    <td className="py-2 pr-4">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${reg.status === "HADIR" ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}`}>
+                        {reg.status}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4 text-gray-400 text-xs">{new Date(reg.waktuDaftar).toLocaleString("id-ID")}</td>
+                    <td className="py-2">
+                      {reg.status !== "HADIR" && (
+                        <button onClick={() => handleManualCheckin(reg.id)} className="text-xs text-blue-400 hover:underline cursor-pointer">
+                          Manual Check-in
+                        </button>
+                      )}
+                      {reg.status === "HADIR" && reg.waktuHadir && (
+                        <span className="text-xs text-gray-500">
+                          {new Date(reg.waktuHadir).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === "report" && (
+        <ReportTab registrations={registrations} event={event} />
+      )}
+    </div>
+  );
+}
+
+function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; questions: EventQuestion[]; onRefresh: () => void }) {
+  const [newLabel, setNewLabel] = useState("");
+  const [newTipe, setNewTipe] = useState("TEXT");
+  const [newWajib, setNewWajib] = useState(false);
+  const [newOpsi, setNewOpsi] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const tipeOptions = ["TEXT", "SINGLE_CHOICE", "MULTIPLE_CHOICE", "DROPDOWN", "NUMBER", "FILE_UPLOAD"];
+  const needsOpsi = ["SINGLE_CHOICE", "MULTIPLE_CHOICE", "DROPDOWN"].includes(newTipe);
+
+  const handleAdd = async () => {
+    if (!newLabel) return;
+    setAdding(true);
+    await fetch(`/api/events/${eventId}/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: newLabel,
+        tipe: newTipe,
+        wajib: newWajib,
+        opsiJawaban: needsOpsi ? newOpsi.split(",").map((s) => s.trim()).filter(Boolean) : null,
+        urutan: questions.length,
+      }),
+    });
+    setNewLabel("");
+    setNewOpsi("");
+    setNewWajib(false);
+    setAdding(false);
+    onRefresh();
+  };
+
+  const handleDelete = async (questionId: string) => {
+    await fetch(`/api/events/${eventId}/questions/${questionId}`, { method: "DELETE" });
+    onRefresh();
+  };
+
+  return (
+    <div className="max-w-2xl">
+      <div className="mb-6 p-4 bg-[#111638] border border-[#1e2450] rounded-xl">
+        <p className="text-sm text-gray-400 mb-3">6 pertanyaan wajib default (No WA, Nama, Domisili, Nama Bisnis, Status Keanggotaan, Sumber Informasi) selalu ada di semua event.</p>
+        <p className="text-sm text-gray-400">Tambahkan pertanyaan kondisional khusus event ini di bawah:</p>
+      </div>
+
+      {questions.length > 0 && (
+        <div className="space-y-2 mb-6">
+          {questions.map((q, idx) => (
+            <div key={q.id} className="flex items-center gap-3 bg-[#111638] border border-[#1e2450] rounded-lg p-3">
+              <span className="text-gray-500 text-xs w-6">{idx + 1}.</span>
+              <div className="flex-1">
+                <span className="text-sm">{q.label}</span>
+                <span className="text-xs text-gray-500 ml-2">{q.tipe}</span>
+                {q.wajib && <span className="text-xs text-red-400 ml-2">*wajib</span>}
+              </div>
+              <button onClick={() => handleDelete(q.id)} className="text-red-400 hover:text-red-300 text-xs cursor-pointer">
+                Hapus
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-medium mb-2">Tambah Pertanyaan</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            placeholder="Label pertanyaan"
+            className="bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          />
+          <select
+            value={newTipe}
+            onChange={(e) => setNewTipe(e.target.value)}
+            className="bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          >
+            {tipeOptions.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        {needsOpsi && (
+          <input
+            value={newOpsi}
+            onChange={(e) => setNewOpsi(e.target.value)}
+            placeholder="Opsi jawaban (pisahkan dengan koma)"
+            className="w-full bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          />
+        )}
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+            <input type="checkbox" checked={newWajib} onChange={(e) => setNewWajib(e.target.checked)} className="cursor-pointer" />
+            Wajib diisi
+          </label>
+          <button onClick={handleAdd} disabled={adding || !newLabel} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer">
+            {adding ? "Menambahkan..." : "Tambah"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThankYouTab({ eventId, config, onSave, saving }: { eventId: string; config: EventData["thankYouConfig"]; onSave: (data: Record<string, unknown>) => Promise<void>; saving: boolean }) {
+  const [heading, setHeading] = useState(config?.heading || "Terima kasih telah mendaftar!");
+  const [message, setMessage] = useState(config?.message || "Anda telah terdaftar. Simpan No WhatsApp Anda untuk check-in nanti di lokasi.");
+
+  return (
+    <div className="max-w-2xl space-y-4">
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Heading</label>
+        <input
+          value={heading}
+          onChange={(e) => setHeading(e.target.value)}
+          className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Pesan</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+        />
+      </div>
+      <button
+        onClick={() => onSave({ thankYouConfig: { heading, message } })}
+        disabled={saving}
+        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+      >
+        {saving ? "Menyimpan..." : "Simpan"}
+      </button>
+    </div>
+  );
+}
+
+function ReportTab({ registrations, event }: { registrations: Registrasi[]; event: EventData }) {
+  const total = registrations.length;
+  const hadir = registrations.filter((r) => r.status === "HADIR").length;
+
+  const groupBy = (key: "domisili" | "statusKeanggotaan" | "sumberInformasi") => {
+    const map: Record<string, number> = {};
+    registrations.forEach((r) => {
+      const val = r.peserta[key] || "(kosong)";
+      map[val] = (map[val] || 0) + 1;
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold">{total}</p>
+          <p className="text-sm text-gray-400">Total Pendaftar</p>
+        </div>
+        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-green-400">{hadir}</p>
+          <p className="text-sm text-gray-400">Hadir</p>
+        </div>
+        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 text-center">
+          <p className="text-3xl font-bold text-yellow-400">{total > 0 ? Math.round((hadir / total) * 100) : 0}%</p>
+          <p className="text-sm text-gray-400">Kehadiran</p>
+        </div>
+      </div>
+
+      {[
+        { title: "Per Domisili", data: groupBy("domisili") },
+        { title: "Per Status Keanggotaan", data: groupBy("statusKeanggotaan") },
+        { title: "Per Sumber Informasi", data: groupBy("sumberInformasi") },
+      ].map(({ title, data }) => (
+        <div key={title} className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
+          <h3 className="text-sm font-medium mb-3">{title}</h3>
+          <div className="space-y-2">
+            {data.map(([label, count]) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{label}</span>
+                    <span className="text-gray-400">{count}</span>
+                  </div>
+                  <div className="h-2 bg-[#0a0e27] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${(count / total) * 100}%`, backgroundColor: event.warnaAksen }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CheckinQRTab({ slug, eventNama }: { slug: string; eventNama: string }) {
+  const checkinUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/event/${slug}/checkin`
+    : `/event/${slug}/checkin`;
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>QR Check-in - ${eventNama}</title>
+      <style>
+        body { font-family: sans-serif; text-align: center; padding: 40px; }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #666; font-size: 14px; margin-bottom: 24px; }
+        .url { font-family: monospace; font-size: 12px; color: #999; word-break: break-all; }
+        .instructions { margin-top: 32px; padding: 16px; border: 1px solid #ddd; border-radius: 8px; text-align: left; }
+        .instructions h3 { font-size: 14px; margin-bottom: 8px; }
+        .instructions ol { font-size: 13px; padding-left: 20px; }
+        .instructions li { margin-bottom: 4px; }
+      </style>
+      </head>
+      <body>
+        <h1>${eventNama}</h1>
+        <p>Scan QR code untuk check-in kehadiran</p>
+        <div>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkinUrl)}" width="300" height="300" />
+        </div>
+        <p class="url">${checkinUrl}</p>
+        <div class="instructions">
+          <h3>Cara Check-in:</h3>
+          <ol>
+            <li>Scan QR code di atas pakai kamera HP</li>
+            <li>Masukkan No WhatsApp yang didaftarkan</li>
+            <li>Klik "Konfirmasi Hadir"</li>
+          </ol>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  return (
+    <div className="max-w-xl">
+      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-6 text-center">
+        <h3 className="text-lg font-semibold mb-2">QR Code Check-in</h3>
+        <p className="text-sm text-gray-400 mb-6">
+          Cetak dan pasang QR ini di meja registrasi. Peserta scan pakai HP untuk check-in.
+        </p>
+
+        <div className="bg-white rounded-xl p-6 inline-block mb-4">
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(checkinUrl)}`}
+            alt="QR Code Check-in"
+            width={250}
+            height={250}
+          />
+        </div>
+
+        <p className="text-xs text-gray-500 font-mono mb-6 break-all">{checkinUrl}</p>
+
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={handlePrint}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          >
+            Cetak QR Code
+          </button>
+          <a
+            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(checkinUrl)}&format=png`}
+            download={`qr-checkin-${slug}.png`}
+            className="bg-[#1e2450] hover:bg-[#2a3060] px-6 py-2 rounded-lg text-sm transition-colors"
+          >
+            Download PNG
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-6 bg-[#111638] border border-[#1e2450] rounded-xl p-4">
+        <h4 className="text-sm font-medium mb-3">Alur Check-in di Lokasi:</h4>
+        <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside">
+          <li>Panitia pasang QR statis di meja registrasi</li>
+          <li>Peserta datang, scan QR pakai HP sendiri (disupervisi panitia)</li>
+          <li>Peserta input No WhatsApp yang didaftarkan</li>
+          <li>Sistem tampilkan nama peserta untuk konfirmasi</li>
+          <li>Peserta klik &quot;Konfirmasi Hadir&quot;</li>
+          <li>Kalau nomor tidak ketemu, panitia bisa manual check-in dari tab Peserta</li>
+        </ol>
+      </div>
+    </div>
+  );
+}

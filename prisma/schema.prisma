@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  SELESAI
+}
+
+enum QuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  DROPDOWN
+  NUMBER
+  FILE_UPLOAD
+}
+
+enum RegistrationStatus {
+  TERDAFTAR
+  HADIR
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+model Event {
+  id             String        @id @default(cuid())
+  nama           String
+  slug           String        @unique
+  deskripsi      String?
+  lokasi         String?
+  googleMapsUrl  String?
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime?
+  bannerUrl      String?
+  warnaAksen     String        @default("#2563eb")
+  kuota          Int?
+  status         EventStatus   @default(DRAFT)
+  thankYouConfig Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  questions    EventQuestion[]
+  registrasi   Registrasi[]
+}
+
+model EventQuestion {
+  id          String       @id @default(cuid())
+  eventId     String
+  label       String
+  tipe        QuestionType
+  opsiJawaban Json?
+  wajib       Boolean      @default(false)
+  urutan      Int          @default(0)
+  createdAt   DateTime     @default(now())
+
+  event   Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  jawaban JawabanKustom[]
+
+  @@index([eventId])
+}
+
+model Peserta {
+  id                 String   @id @default(cuid())
+  noWa               String   @unique
+  nama               String
+  domisili           String?
+  namaBisnis         String?
+  statusKeanggotaan  String?
+  sumberInformasi    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  registrasi Registrasi[]
+}
+
+model Registrasi {
+  id          String             @id @default(cuid())
+  eventId     String
+  pesertaId   String
+  status      RegistrationStatus @default(TERDAFTAR)
+  waktuDaftar DateTime           @default(now())
+  waktuHadir  DateTime?
+
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  peserta Peserta  @relation(fields: [pesertaId], references: [id], onDelete: Cascade)
+  jawaban JawabanKustom[]
+
+  @@unique([eventId, pesertaId])
+  @@index([eventId])
+  @@index([pesertaId])
+}
+
+model JawabanKustom {
+  id              String @id @default(cuid())
+  registrasiId    String
+  eventQuestionId String
+  nilai           String
+
+  registrasi    Registrasi    @relation(fields: [registrasiId], references: [id], onDelete: Cascade)
+  eventQuestion EventQuestion @relation(fields: [eventQuestionId], references: [id])
+
+  @@index([registrasiId])
+  @@index([eventQuestionId])
+}
+
+model Admin {
+  id           String    @id @default(cuid())
+  nama         String
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  createdAt    DateTime  @default(now())
+}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { id },
     select: { nama: true, tanggalMulai: true, lokasi: true, notifConfig: true },
   });
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const tanggal = new Date(event.tanggalMulai).toLocaleString("id-ID");
   const lokasi = event.lokasi || "-";
 
-  const regs = await prisma.registrasi.findMany({
+  const regs = await getPrisma().registrasi.findMany({
     where: { eventId: id, status: "TERDAFTAR" },
     include: { peserta: { select: { nama: true, noWa: true } } },
   });

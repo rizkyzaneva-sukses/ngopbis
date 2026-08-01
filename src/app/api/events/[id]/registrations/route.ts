@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const registrations = await prisma.registrasi.findMany({
+  const registrations = await getPrisma().registrasi.findMany({
     where: { eventId: id },
     include: {
       peserta: true,
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
     data.waktuHadir = new Date();
   }
 
-  const updated = await prisma.registrasi.update({
+  const updated = await getPrisma().registrasi.update({
     where: { id: registrasiId },
     data,
     include: { peserta: true },

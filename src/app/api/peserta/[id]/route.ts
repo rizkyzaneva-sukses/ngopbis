@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const peserta = await prisma.peserta.findUnique({
+  const peserta = await getPrisma().peserta.findUnique({
     where: { id },
     include: {
       registrasi: {
@@ -47,7 +47,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (statusKeanggotaan !== undefined) data.statusKeanggotaan = statusKeanggotaan || null;
     if (sumberInformasi !== undefined) data.sumberInformasi = sumberInformasi || null;
 
-    const updated = await prisma.peserta.update({ where: { id }, data });
+    const updated = await getPrisma().peserta.update({ where: { id }, data });
 
     await logAudit({
       adminId: session.adminId,

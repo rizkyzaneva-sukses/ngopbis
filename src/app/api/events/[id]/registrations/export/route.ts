@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import * as XLSX from "xlsx";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { id },
     include: { questions: { orderBy: { urutan: "asc" } } },
   });
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
   }
 
-  const registrations = await prisma.registrasi.findMany({
+  const registrations = await getPrisma().registrasi.findMany({
     where: { eventId: id },
     include: {
       peserta: true,

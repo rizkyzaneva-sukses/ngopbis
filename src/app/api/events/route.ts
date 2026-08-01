@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { generateSlug } from "@/lib/utils";
@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const events = await prisma.event.findMany({
+  const events = await getPrisma().event.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { registrasi: true } },
@@ -34,12 +34,12 @@ export async function POST(req: NextRequest) {
   }
 
   let slug = customSlug || generateSlug(nama);
-  const existingSlug = await prisma.event.findUnique({ where: { slug } });
+  const existingSlug = await getPrisma().event.findUnique({ where: { slug } });
   if (existingSlug) {
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
-  const event = await prisma.event.create({
+  const event = await getPrisma().event.create({
     data: {
       nama,
       slug,

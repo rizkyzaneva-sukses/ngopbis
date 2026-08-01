@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "50") || 50;
   const offset = parseInt(searchParams.get("offset") || "0") || 0;
 
-  const logs = await prisma.auditLog.findMany({
+  const logs = await getPrisma().auditLog.findMany({
     where: entitas ? { entitas } : undefined,
     orderBy: { createdAt: "desc" },
     take: limit,

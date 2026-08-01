@@ -14,23 +14,12 @@ function createPrismaClient() {
 }
 
 // Lazy singleton — only creates the client on first access, preventing
-// build-time errors when DATABASE_URL is not available
-export const prisma = (() => {
-  const getter = () => {
-    if (!globalForPrisma.prisma) {
-      globalForPrisma.prisma = createPrismaClient();
-    }
-    return globalForPrisma.prisma;
-  };
-  // Return a Proxy that delegates all property access to the lazy client
-  return new Proxy({} as PrismaClient, {
-    get(_target, prop, receiver) {
-      const client = getter();
-      const value = Reflect.get(client, prop, receiver);
-      if (typeof value === "function") {
-        return value.bind(client);
-      }
-      return value;
-    },
-  });
-})();
+// build-time errors when DATABASE_URL is not available.
+// Uses a plain function instead of Proxy to avoid intercepting
+// Next.js internal property accesses.
+export function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
+}

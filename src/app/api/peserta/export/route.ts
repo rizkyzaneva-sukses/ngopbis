@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import * as XLSX from "xlsx";
 
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const pesertaList = await prisma.peserta.findMany({
+  const pesertaList = await getPrisma().peserta.findMany({
     include: { registrasi: { select: { status: true } } },
     orderBy: { createdAt: "desc" },
   });

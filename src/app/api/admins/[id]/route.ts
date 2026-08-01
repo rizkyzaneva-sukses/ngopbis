@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { hashSync } from "bcryptjs";
@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const body = await req.json();
   const { password, role } = body;
 
-  const existing = await prisma.admin.findUnique({ where: { id } });
+  const existing = await getPrisma().admin.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Admin tidak ditemukan" }, { status: 404 });
   }
@@ -34,7 +34,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Tidak ada perubahan" }, { status: 400 });
   }
 
-  const admin = await prisma.admin.update({
+  const admin = await getPrisma().admin.update({
     where: { id },
     data,
     select: { id: true, nama: true, email: true, role: true, createdAt: true },
@@ -62,12 +62,12 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Tidak bisa menghapus akun sendiri" }, { status: 400 });
   }
 
-  const existing = await prisma.admin.findUnique({ where: { id } });
+  const existing = await getPrisma().admin.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Admin tidak ditemukan" }, { status: 404 });
   }
 
-  await prisma.admin.delete({ where: { id } });
+  await getPrisma().admin.delete({ where: { id } });
 
   await logAudit({
     adminId: session.adminId,

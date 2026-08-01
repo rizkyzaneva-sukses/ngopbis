@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { hashSync } from "bcryptjs";
@@ -10,7 +10,7 @@ export async function GET() {
   if (!session.isLoggedIn) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (session.adminRole !== "SUPER_ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const admins = await prisma.admin.findMany({
+  const admins = await getPrisma().admin.findMany({
     orderBy: { createdAt: "desc" },
     select: { id: true, nama: true, email: true, role: true, createdAt: true },
   });
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   let admin;
   try {
-    admin = await prisma.admin.create({
+    admin = await getPrisma().admin.create({
       data: {
         nama,
         email,

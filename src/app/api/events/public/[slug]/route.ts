@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { slug },
     include: {
       questions: { orderBy: { urutan: "asc" } },

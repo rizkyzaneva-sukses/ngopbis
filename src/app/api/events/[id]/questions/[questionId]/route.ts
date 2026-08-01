@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ questionId: string }> }) {
@@ -9,6 +9,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ q
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await prisma.eventQuestion.delete({ where: { id: questionId } });
+  await getPrisma().eventQuestion.delete({ where: { id: questionId } });
   return NextResponse.json({ ok: true });
 }

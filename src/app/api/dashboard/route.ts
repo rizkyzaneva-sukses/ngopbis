@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 function startOfDay(d: Date): Date {
@@ -28,12 +28,12 @@ export async function GET() {
 
   const [totalEvent, activeEvent, totalPeserta, totalRegistrasi, totalHadir, recent, upcoming, windowRegs] =
     await Promise.all([
-      prisma.event.count(),
-      prisma.event.count({ where: { status: "PUBLISHED" } }),
-      prisma.peserta.count(),
-      prisma.registrasi.count(),
-      prisma.registrasi.count({ where: { status: "HADIR" } }),
-      prisma.registrasi.findMany({
+      getPrisma().event.count(),
+      getPrisma().event.count({ where: { status: "PUBLISHED" } }),
+      getPrisma().peserta.count(),
+      getPrisma().registrasi.count(),
+      getPrisma().registrasi.count({ where: { status: "HADIR" } }),
+      getPrisma().registrasi.findMany({
         orderBy: { waktuDaftar: "desc" },
         take: 8,
         include: {
@@ -41,13 +41,13 @@ export async function GET() {
           event: { select: { nama: true } },
         },
       }),
-      prisma.event.findMany({
+      getPrisma().event.findMany({
         where: { tanggalMulai: { gte: todayStart } },
         orderBy: { tanggalMulai: "asc" },
         take: 5,
         include: { _count: { select: { registrasi: true } } },
       }),
-      prisma.registrasi.findMany({
+      getPrisma().registrasi.findMany({
         where: { waktuDaftar: { gte: windowStart } },
         select: { waktuDaftar: true },
       }),
@@ -69,7 +69,7 @@ export async function GET() {
 
   const attendanceRate = totalRegistrasi === 0 ? 0 : Math.round((totalHadir / totalRegistrasi) * 1000) / 10;
 
-  const allRegs = await prisma.registrasi.findMany({
+  const allRegs = await getPrisma().registrasi.findMany({
     select: {
       peserta: { select: { domisili: true, statusKeanggotaan: true, sumberInformasi: true } },
     },

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const questions = await prisma.eventQuestion.findMany({
+  const questions = await getPrisma().eventQuestion.findMany({
     where: { eventId: id },
     orderBy: { urutan: "asc" },
   });
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Label dan tipe wajib diisi" }, { status: 400 });
   }
 
-  const question = await prisma.eventQuestion.create({
+  const question = await getPrisma().eventQuestion.create({
     data: {
       eventId: id,
       label,
@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest) {
   const { questions } = body as { questions: Array<{ id: string; label: string; tipe: string; opsiJawaban?: unknown; wajib: boolean; urutan: number }> };
 
   for (const q of questions) {
-    await prisma.eventQuestion.update({
+    await getPrisma().eventQuestion.update({
       where: { id: q.id },
       data: {
         label: q.label,

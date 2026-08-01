@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { formatNoWa, validateNoWa } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendWhatsAppMessage, renderTemplate, DEFAULT_TEMPLATE_KONFIRMASI, type NotifConfig } from "@/lib/whatsapp";
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Format No WhatsApp tidak valid" }, { status: 400 });
   }
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { slug: eventSlug },
     include: {
       _count: { select: { registrasi: true } },
@@ -59,22 +59,22 @@ export async function POST(req: NextRequest) {
 
   const normalizedNoWa = formatNoWa(noWa);
 
-  const peserta = await prisma.peserta.upsert({
+  const peserta = await getPrisma().peserta.upsert({
     where: { noWa: normalizedNoWa },
     update: { nama, domisili, namaBisnis, statusKeanggotaan, sumberInformasi },
     create: { noWa: normalizedNoWa, nama, domisili, namaBisnis, statusKeanggotaan, sumberInformasi },
   });
 
-  const existingReg = await prisma.registrasi.findUnique({
+  const existingReg = await getPrisma().registrasi.findUnique({
     where: { eventId_pesertaId: { eventId: event.id, pesertaId: peserta.id } },
   });
 
   if (existingReg) {
     if (jawabanKustom && Array.isArray(jawabanKustom)) {
-      await prisma.jawabanKustom.deleteMany({ where: { registrasiId: existingReg.id } });
+      await getPrisma().jawabanKustom.deleteMany({ where: { registrasiId: existingReg.id } });
       for (const jawaban of jawabanKustom) {
         if (jawaban.eventQuestionId && jawaban.nilai) {
-          await prisma.jawabanKustom.create({
+          await getPrisma().jawabanKustom.create({
             data: {
               registrasiId: existingReg.id,
               eventQuestionId: jawaban.eventQuestionId,
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, registrasiId: existingReg.id, updated: true });
   }
 
-  const registrasi = await prisma.registrasi.create({
+  const registrasi = await getPrisma().registrasi.create({
     data: {
       eventId: event.id,
       pesertaId: peserta.id,
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
   if (jawabanKustom && Array.isArray(jawabanKustom)) {
     for (const jawaban of jawabanKustom) {
       if (jawaban.eventQuestionId && jawaban.nilai) {
-        await prisma.jawabanKustom.create({
+        await getPrisma().jawabanKustom.create({
           data: {
             registrasiId: registrasi.id,
             eventQuestionId: jawaban.eventQuestionId,

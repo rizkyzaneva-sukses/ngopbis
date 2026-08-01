@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 import { isWahaConfigured, DEFAULT_TEMPLATE_KONFIRMASI, DEFAULT_TEMPLATE_REMINDER, type NotifConfig } from "@/lib/whatsapp";
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { id },
     select: { notifConfig: true },
   });
@@ -51,7 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     templateReminder: typeof templateReminder === "string" ? templateReminder : undefined,
   };
 
-  await prisma.event.update({
+  await getPrisma().event.update({
     where: { id },
     data: { notifConfig: notifConfig as object },
   });

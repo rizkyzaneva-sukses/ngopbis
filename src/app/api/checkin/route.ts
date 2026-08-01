@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { formatNoWa } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
@@ -16,17 +16,17 @@ export async function POST(req: NextRequest) {
 
   const normalizedNoWa = formatNoWa(noWa);
 
-  const event = await prisma.event.findUnique({ where: { slug: eventSlug } });
+  const event = await getPrisma().event.findUnique({ where: { slug: eventSlug } });
   if (!event) {
     return NextResponse.json({ error: "Event tidak ditemukan" }, { status: 404 });
   }
 
-  const peserta = await prisma.peserta.findUnique({ where: { noWa: normalizedNoWa } });
+  const peserta = await getPrisma().peserta.findUnique({ where: { noWa: normalizedNoWa } });
   if (!peserta) {
     return NextResponse.json({ status: "NOT_FOUND", message: "Nomor tidak terdaftar di event ini. Hubungi panitia." });
   }
 
-  const registrasi = await prisma.registrasi.findUnique({
+  const registrasi = await getPrisma().registrasi.findUnique({
     where: { eventId_pesertaId: { eventId: event.id, pesertaId: peserta.id } },
   });
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  await prisma.registrasi.update({
+  await getPrisma().registrasi.update({
     where: { id: registrasi.id },
     data: { status: "HADIR", waktuHadir: new Date() },
   });

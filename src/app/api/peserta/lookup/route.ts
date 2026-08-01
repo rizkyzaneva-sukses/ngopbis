@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { formatNoWa } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   }
 
   const normalized = formatNoWa(noWa);
-  const peserta = await prisma.peserta.findUnique({
+  const peserta = await getPrisma().peserta.findUnique({
     where: { noWa: normalized },
   });
 

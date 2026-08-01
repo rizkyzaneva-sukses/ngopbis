@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const event = await prisma.event.findUnique({
+  const event = await getPrisma().event.findUnique({
     where: { id },
     include: {
       questions: { orderBy: { urutan: "asc" } },
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (status !== undefined) data.status = status;
     if (thankYouConfig !== undefined) data.thankYouConfig = thankYouConfig;
 
-    const event = await prisma.event.update({ where: { id }, data });
+    const event = await getPrisma().event.update({ where: { id }, data });
 
     await logAudit({
       adminId: session.adminId,
@@ -75,7 +75,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await prisma.event.delete({ where: { id } });
+  await getPrisma().event.delete({ where: { id } });
 
   await logAudit({
     adminId: session.adminId,

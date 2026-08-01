@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { compareSync } from "bcryptjs";
 import { logAudit } from "@/lib/audit";
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email dan password wajib diisi" }, { status: 400 });
   }
 
-  const admin = await prisma.admin.findUnique({ where: { email } });
+  const admin = await getPrisma().admin.findUnique({ where: { email } });
   if (!admin || !compareSync(password, admin.passwordHash)) {
     return NextResponse.json({ error: "Email atau password salah" }, { status: 401 });
   }

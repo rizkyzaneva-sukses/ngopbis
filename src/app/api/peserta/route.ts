@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { Prisma } from "@/generated/prisma/client";
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const where: Prisma.PesertaWhereInput = conditions.length ? { AND: conditions } : {};
 
-  const pesertaList = await prisma.peserta.findMany({
+  const pesertaList = await getPrisma().peserta.findMany({
     where,
     include: { registrasi: { select: { status: true } } },
     orderBy: { createdAt: "desc" },

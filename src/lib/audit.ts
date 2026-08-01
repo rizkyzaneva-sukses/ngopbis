@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { getPrisma } from "./prisma";
 
 export async function logAudit(params: {
   adminId?: string;
@@ -9,7 +9,7 @@ export async function logAudit(params: {
   detail?: Record<string, unknown>;
 }) {
   try {
-    await prisma.auditLog.create({
+    await getPrisma().auditLog.create({
       data: {
         adminId: params.adminId,
         adminNama: params.adminNama,

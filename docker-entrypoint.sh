@@ -7,4 +7,5 @@ if [ -z "${DATABASE_URL:-}" ]; then
 fi
 
 npx prisma migrate deploy
+node scripts/bootstrap-admin.mjs
 node server.js

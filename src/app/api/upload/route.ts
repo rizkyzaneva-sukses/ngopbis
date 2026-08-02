@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { getUploadDir } from "@/lib/uploads";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   const ext = path.extname(file.name) || ".bin";
   const filename = `${uuidv4()}${ext}`;
   // Use a mounted directory in production so uploads survive container redeploys.
-  const uploadDir = process.env.UPLOAD_DIR?.trim() || path.join(process.cwd(), "public", "uploads");
+  const uploadDir = getUploadDir();
   const filepath = path.join(uploadDir, filename);
 
   const bytes = await file.arrayBuffer();

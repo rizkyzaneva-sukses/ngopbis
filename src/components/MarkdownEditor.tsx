@@ -18,7 +18,7 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selected = value.slice(start, end) || "teks";
+    const selected = value.slice(start, end);
     const next = `${value.slice(0, start)}${prefix}${selected}${suffix}${value.slice(end)}`;
     setValue(next);
 
@@ -29,15 +29,30 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
     });
   };
 
+  const getLineRange = (start: number, end: number) => {
+    const lineStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const nextBreak = value.indexOf("\n", end);
+    const lineEnd = nextBreak === -1 ? value.length : nextBreak;
+    return { lineStart, lineEnd };
+  };
+
   const prefixLines = (prefix: string, numbered = false) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = value.slice(start, end) || "Tulis poin di sini";
+    let start = textarea.selectionStart;
+    let end = textarea.selectionEnd;
+    if (start === end) {
+      const range = getLineRange(start, end);
+      start = range.lineStart;
+      end = range.lineEnd;
+    }
+    const selected = value.slice(start, end);
     const lines = selected.split("\n");
-    const formatted = lines.map((line, index) => `${numbered ? `${index + 1}. ` : prefix}${line}`).join("\n");
+    const formatted = lines.map((line, index) => {
+      const indentation = line.match(/^\s*/)?.[0] || "";
+      return `${indentation}${numbered ? `${index + 1}. ` : prefix}${line.slice(indentation.length)}`;
+    }).join("\n");
     const next = `${value.slice(0, start)}${formatted}${value.slice(end)}`;
     setValue(next);
 
@@ -47,19 +62,72 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
     });
   };
 
-  const toolbar: Array<{ label: string; title: string; action: "bold" | "italic" | "bullet" | "numbered" | "link" }> = [
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const { lineStart, lineEnd } = getLineRange(start, end);
+    const line = value.slice(lineStart, lineEnd);
+    const listMatch = line.match(/^(\s*)([-*]|\d+[.)])\s+(.*)$/);
+
+    if (event.key === "Tab") {
+      event.preventDefault();
+      const indentation = line.match(/^\s*/)?.[0] || "";
+      if (event.shiftKey) {
+        const removeCount = indentation.endsWith("  ") ? 2 : indentation.length > 0 ? 1 : 0;
+        if (removeCount > 0) {
+          const next = `${value.slice(0, lineStart)}${indentation.slice(removeCount)}${value.slice(lineStart + indentation.length)}`;
+          setValue(next);
+          requestAnimationFrame(() => textarea.setSelectionRange(Math.max(lineStart, start - removeCount), Math.max(lineStart, end - removeCount)));
+        }
+      } else {
+        const next = `${value.slice(0, lineStart)}  ${value.slice(lineStart)}`;
+        setValue(next);
+        requestAnimationFrame(() => textarea.setSelectionRange(start + 2, end + 2));
+      }
+      return;
+    }
+
+    if (event.key === "Enter" && listMatch) {
+      event.preventDefault();
+      const indentation = listMatch[1];
+      const marker = listMatch[2];
+      const content = listMatch[3].trim();
+
+      if (!content) {
+        const next = `${value.slice(0, lineStart)}${indentation}\n${value.slice(lineEnd)}`;
+        setValue(next);
+        requestAnimationFrame(() => textarea.setSelectionRange(lineStart + indentation.length + 1, lineStart + indentation.length + 1));
+        return;
+      }
+
+      const nextMarker = /^\d/.test(marker) ? `${Number.parseInt(marker, 10) + 1}.` : marker;
+      const next = `${value.slice(0, start)}\n${indentation}${nextMarker} ${value.slice(start)}`;
+      setValue(next);
+      const cursor = start + indentation.length + nextMarker.length + 1;
+      requestAnimationFrame(() => textarea.setSelectionRange(cursor, cursor));
+    }
+  };
+
+  const toolbar: Array<{ label: string; title: string; action: "bold" | "italic" | "underline" | "bullet" | "numbered" | "quote" | "heading" | "link" }> = [
     { label: "B", title: "Bold", action: "bold" },
     { label: "I", title: "Italic", action: "italic" },
+    { label: "U", title: "Underline", action: "underline" },
     { label: "•", title: "Bullet list", action: "bullet" },
     { label: "1.", title: "Numbered list", action: "numbered" },
+    { label: "\"", title: "Quote", action: "quote" },
+    { label: "H2", title: "Heading", action: "heading" },
     { label: "Link", title: "Link", action: "link" },
   ];
 
   const handleToolbar = (action: (typeof toolbar)[number]["action"]) => {
     if (action === "bold") replaceSelection("**");
     if (action === "italic") replaceSelection("*");
+    if (action === "underline") replaceSelection("__");
     if (action === "bullet") prefixLines("- ");
     if (action === "numbered") prefixLines("", true);
+    if (action === "quote") prefixLines("> ");
+    if (action === "heading") prefixLines("## ");
     if (action === "link") replaceSelection("[", "](https://)");
   };
 
@@ -84,6 +152,7 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
         name={name}
         value={value}
         onChange={(event) => setValue(event.target.value)}
+        onKeyDown={handleKeyDown}
         rows={rows}
         placeholder="Tulis deskripsi event..."
         className="block w-full resize-y border-0 px-3 py-3 text-sm leading-6 text-[#152238] outline-none placeholder:text-[#99a6b7]"

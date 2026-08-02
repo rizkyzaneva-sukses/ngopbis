@@ -52,10 +52,10 @@ export default function AuditLogPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">Audit Log</h1>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="eyebrow mb-2">Jejak aktivitas</p><h1 className="text-2xl font-bold tracking-tight">Audit log</h1><p className="mt-1 text-sm text-[#718096]">Riwayat perubahan dan aktivitas admin.</p></div>
         <select
-          className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+          className="admin-input w-full sm:w-auto"
           value={entitas}
           onChange={(e) => {
             setLimit(100);
@@ -76,7 +76,7 @@ export default function AuditLogPage() {
       ) : logs.length === 0 ? (
         <p className="text-gray-500">Tidak ada log.</p>
       ) : (
-        <div className="bg-[#111638] border border-[#1e2450] rounded-xl overflow-hidden">
+           <div className="admin-card hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead className="bg-[#0a0e27] text-gray-400">
               <tr>
@@ -109,6 +109,21 @@ export default function AuditLogPage() {
               })}
             </tbody>
           </table>
+         </div>
+      )}
+
+      {!loading && logs.length > 0 && (
+        <div className="grid gap-3 md:hidden">
+          {logs.map((log) => {
+            const detailStr = log.detail ? JSON.stringify(log.detail, null, 2) : "-";
+            return (
+              <article key={log.id} className="admin-card p-4">
+                <div className="flex items-start justify-between gap-3"><div><p className="font-semibold">{log.aksi}</p><p className="mt-1 text-xs text-[#718096]">{new Date(log.createdAt).toLocaleString("id-ID")}</p></div><span className="rounded-full bg-[#e8f4f7] px-2 py-1 text-[11px] font-bold text-[#176b87]">{log.entitas}</span></div>
+                <p className="mt-3 text-sm text-[#526176]">Admin: {log.adminNama || "-"}</p>
+                <p className="mt-2 break-words font-mono text-xs text-[#718096]">{detailStr}</p>
+              </article>
+            );
+          })}
         </div>
       )}
 

@@ -97,7 +97,7 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
         <div><p className="eyebrow mb-1">Profil peserta</p><h1 className="text-2xl font-bold tracking-tight">{peserta.nama}</h1></div>
         {toast && (
           <div
-            className={`fixed right-6 top-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+             className={`fixed left-4 right-4 top-20 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl sm:left-auto sm:right-6 sm:top-6 ${
               toast.includes("diperbarui")
                 ? "border-green-500/40 bg-green-950 text-green-300"
                 : "border-red-500/40 bg-red-950 text-red-300"

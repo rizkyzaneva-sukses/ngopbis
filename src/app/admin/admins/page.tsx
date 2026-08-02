@@ -127,7 +127,7 @@ export default function AdminsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-6">Manajemen Admin</h1>
+      <div className="mb-6"><p className="eyebrow mb-2">Akses & keamanan</p><h1 className="text-2xl font-bold tracking-tight">Manajemen admin</h1><p className="mt-1 text-sm text-[#718096]">Atur akun dan akses pengelola workspace.</p></div>
 
       <div className="fixed top-20 right-6 z-50 flex flex-col gap-2">
         {toasts.map((t) => (
@@ -142,9 +142,9 @@ export default function AdminsPage() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-5 h-fit">
-          <h2 className="font-semibold mb-4">Tambah Admin</h2>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="admin-card h-fit p-5">
+          <h2 className="mb-4 font-semibold">Tambah admin</h2>
           <form onSubmit={handleCreate} className="flex flex-col gap-3">
             <input
               className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
@@ -190,7 +190,7 @@ export default function AdminsPage() {
           ) : admins.length === 0 ? (
             <p className="text-gray-500">Belum ada admin.</p>
           ) : (
-            <div className="bg-[#111638] border border-[#1e2450] rounded-xl overflow-hidden">
+            <div className="admin-card hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead className="bg-[#0a0e27] text-gray-400">
                   <tr>
@@ -260,6 +260,24 @@ export default function AdminsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!loading && admins.length > 0 && (
+            <div className="grid gap-3 md:hidden">
+              {admins.map((admin) => (
+                <div key={admin.id} className="admin-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0"><p className="truncate font-bold">{admin.nama}</p><p className="mt-1 truncate text-sm text-[#718096]">{admin.email}</p></div>
+                    <span className="rounded-full bg-[#e8f4f7] px-2 py-1 text-[11px] font-bold text-[#176b87]">{admin.role}</span>
+                  </div>
+                  <p className="mt-3 text-xs text-[#8a98a8]">Dibuat {new Date(admin.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</p>
+                  <div className="mt-4 flex flex-col gap-2 border-t border-[#edf0f4] pt-3">
+                    <div className="flex gap-2"><input type="password" placeholder="Password baru" value={resetPasswords[admin.id] || ""} onChange={(e) => setResetPasswords((p) => ({ ...p, [admin.id]: e.target.value }))} className="admin-input min-w-0 flex-1" /><button onClick={() => handleResetPassword(admin.id)} disabled={resetting === admin.id} className="primary-button cursor-pointer px-3 text-xs disabled:opacity-50">{resetting === admin.id ? "..." : "Reset"}</button></div>
+                    <button onClick={() => handleDelete(admin)} disabled={admin.id === me.adminId} className="w-full rounded-xl bg-[#b24b4b] px-3 py-2 text-xs font-bold text-white cursor-pointer hover:bg-[#963d3d] disabled:cursor-not-allowed disabled:opacity-40">Hapus admin</button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

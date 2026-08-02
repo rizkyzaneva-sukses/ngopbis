@@ -152,7 +152,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div>
-       <div className="mb-6 flex items-start gap-3">
+       <div className="mb-6 flex flex-wrap items-start gap-3">
         <button onClick={() => router.push("/admin/events")} className="text-gray-400 hover:text-white cursor-pointer">&larr;</button>
          <div className="min-w-0"><p className="eyebrow mb-1">Detail event</p><h1 className="truncate text-2xl font-bold tracking-tight">{event.nama}</h1></div>
         <span className={`text-xs px-2 py-1 rounded-full ${
@@ -162,7 +162,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           "bg-gray-500/20 text-gray-400"
         }`}>{event.status}</span>
         {msg && (
-          <div className={`fixed right-6 top-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+           <div className={`fixed left-4 right-4 top-20 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl sm:left-auto sm:right-6 sm:top-6 ${
             msg.includes("berhasil") ? "border-green-500/40 bg-green-950 text-green-300" : "border-red-500/40 bg-red-950 text-red-300"
           }`} role="status">
             {msg}
@@ -298,7 +298,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
       {tab === "registrations" && (
         <div>
-          <div className="flex items-center justify-between mb-4">
+           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-gray-400">{registrations.length} peserta terdaftar, {hadirCount} hadir</p>
             <button onClick={handleExport} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm transition-colors cursor-pointer">
               Export Excel
@@ -469,7 +469,7 @@ function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; ques
       {questions.length > 0 && (
         <div className="space-y-2 mb-6">
           {questions.map((q, idx) => (
-            <div key={q.id} className="flex items-center gap-3 bg-[#111638] border border-[#1e2450] rounded-lg p-3">
+             <div key={q.id} className="flex flex-col gap-3 rounded-lg border border-[#edf0f4] bg-[#111638] p-3 sm:flex-row sm:items-center">
               <span className="text-gray-500 text-xs w-6">{idx + 1}.</span>
               {editingId === q.id ? (
                 <div className="flex-1 space-y-2">
@@ -500,12 +500,12 @@ function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; ques
                 </div>
               )}
               {editingId === q.id ? (
-                <div className="flex items-center gap-2 shrink-0">
+                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
                   <button onClick={() => handleSaveEdit(q, idx)} className="text-green-400 hover:text-green-300 text-xs cursor-pointer">Simpan</button>
                   <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-300 text-xs cursor-pointer">Batal</button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 shrink-0">
+                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
                   <button onClick={() => handleReorder(idx, -1)} disabled={idx === 0} className="text-gray-400 hover:text-white disabled:text-gray-700 text-xs cursor-pointer">&uarr;</button>
                   <button onClick={() => handleReorder(idx, 1)} disabled={idx === questions.length - 1} className="text-gray-400 hover:text-white disabled:text-gray-700 text-xs cursor-pointer">&darr;</button>
                   <button onClick={() => startEdit(q)} className="text-blue-400 hover:text-blue-300 text-xs cursor-pointer">Edit</button>
@@ -520,7 +520,7 @@ function QuestionsTab({ eventId, questions, onRefresh }: { eventId: string; ques
 
       <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-medium mb-2">Tambah Pertanyaan</h3>
-        <div className="grid grid-cols-2 gap-3">
+           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
@@ -608,7 +608,7 @@ function ReportTab({ registrations, event }: { registrations: Registrasi[]; even
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
+       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 text-center">
           <p className="text-3xl font-bold">{total}</p>
           <p className="text-sm text-gray-400">Total Pendaftar</p>
@@ -721,7 +721,7 @@ function CheckinQRTab({ slug, eventNama, eventId }: { slug: string; eventNama: s
 
         <p className="text-xs text-gray-500 font-mono mb-6 break-all">{checkinUrl}</p>
 
-        <div className="flex gap-3 justify-center">
+       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             onClick={handlePrint}
             className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"

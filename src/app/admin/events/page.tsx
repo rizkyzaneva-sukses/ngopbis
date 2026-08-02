@@ -135,7 +135,7 @@ export default function EventsPage() {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <input
           type="text"
           placeholder="Cari nama atau slug..."
@@ -146,7 +146,7 @@ export default function EventsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-           className="admin-input"
+           className="admin-input w-full sm:w-auto"
         >
           <option value="Semua">Semua Status</option>
           <option value="DRAFT">DRAFT</option>
@@ -191,8 +191,8 @@ export default function EventsPage() {
                  className="admin-card p-5 transition-colors hover:border-[#a6d2d9]"
               >
                 <Link href={`/admin/events/${event.id}`} className="block">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
+                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                     <div className="min-w-0">
                       <h2 className="font-semibold text-lg truncate">{event.nama}</h2>
                       <p className="text-gray-400 text-sm mt-1">
                         {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
@@ -205,8 +205,8 @@ export default function EventsPage() {
                       </p>
                       <p className="text-gray-500 text-xs mt-1 font-mono">/{event.slug}</p>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-sm text-gray-400">{count} peserta</span>
+                     <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0 sm:justify-end">
+                       <span className="text-sm text-gray-400">{count} peserta</span>
                       <span className={`text-xs px-2 py-1 rounded-full ${statusColor[event.status] || ""}`}>
                         {event.status}
                       </span>
@@ -235,11 +235,11 @@ export default function EventsPage() {
                   </div>
                 </Link>
 
-                <div className="flex gap-2 mt-4 pt-4 border-t border-[#1e2450]">
+                 <div className="mt-4 flex flex-wrap gap-2 border-t border-[#edf0f4] pt-4">
                   <button
                     type="button"
                     onClick={(e) => handleCopyLink(e, event.slug)}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                     className="primary-button flex-1 cursor-pointer sm:flex-none"
                   >
                     Copy Link
                   </button>
@@ -247,7 +247,7 @@ export default function EventsPage() {
                     type="button"
                     onClick={(e) => handleDuplicate(e, event.id)}
                     disabled={busyId === event.id}
-                    className="bg-[#1e2450] hover:bg-[#2a3170] px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                     className="secondary-button flex-1 cursor-pointer sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Duplikat
                   </button>
@@ -255,7 +255,7 @@ export default function EventsPage() {
                     type="button"
                     onClick={(e) => handleDelete(e, event.id)}
                     disabled={busyId === event.id}
-                    className="bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                     className="flex-1 cursor-pointer rounded-xl bg-[#b24b4b] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#963d3d] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
                   >
                     Hapus
                   </button>

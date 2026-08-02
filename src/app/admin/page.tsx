@@ -138,7 +138,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Total Event" value={data.totalEvent} />
         <StatCard label="Event Aktif" value={data.activeEvent} />
         <StatCard label="Total Peserta" value={data.totalPeserta} />
@@ -152,21 +152,23 @@ export default function AdminDashboard() {
         {data.perDay.every((d) => d.count === 0) ? (
           <p className="text-gray-500 text-sm py-8 text-center">Belum ada pendaftar dalam 14 hari terakhir.</p>
         ) : (
-          <div className="flex items-end gap-2" style={{ height: 160 }}>
-            {data.perDay.map((d) => (
-              <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full">
-                <div
-                  className="w-full bg-blue-500 hover:bg-blue-400 rounded-t transition-colors"
-                  style={{ height: `${(d.count / maxDay) * 100}%` }}
-                  title={`${d.date}: ${d.count} pendaftar`}
-                />
-                <span className="text-xs text-gray-500 mt-1">
-                  {new Date(d.date).toLocaleDateString("id-ID", { day: "numeric" })}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+           <div className="overflow-x-auto">
+             <div className="flex min-w-[34rem] items-end gap-2" style={{ height: 160 }}>
+               {data.perDay.map((d) => (
+                 <div key={d.date} className="flex h-full flex-1 flex-col items-center justify-end">
+                   <div
+                     className="w-full rounded-t bg-blue-500 transition-colors hover:bg-blue-400"
+                     style={{ height: `${(d.count / maxDay) * 100}%` }}
+                     title={`${d.date}: ${d.count} pendaftar`}
+                   />
+                   <span className="mt-1 text-xs text-gray-500">
+                     {new Date(d.date).toLocaleDateString("id-ID", { day: "numeric" })}
+                   </span>
+                 </div>
+               ))}
+             </div>
+           </div>
+         )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">

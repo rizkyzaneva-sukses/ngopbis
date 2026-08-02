@@ -152,9 +152,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
+       <div className="mb-6 flex items-start gap-3">
         <button onClick={() => router.push("/admin/events")} className="text-gray-400 hover:text-white cursor-pointer">&larr;</button>
-        <h1 className="text-xl font-bold">{event.nama}</h1>
+         <div className="min-w-0"><p className="eyebrow mb-1">Detail event</p><h1 className="truncate text-2xl font-bold tracking-tight">{event.nama}</h1></div>
         <span className={`text-xs px-2 py-1 rounded-full ${
           event.status === "PUBLISHED" ? "bg-green-500/20 text-green-400" :
           event.status === "CLOSED" ? "bg-yellow-500/20 text-yellow-400" :
@@ -170,7 +170,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      <div className="flex items-center gap-3 mb-6 text-sm">
+       <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
         <Link href={`/event/${event.slug}`} target="_blank" className="text-blue-400 hover:underline font-mono">
           /event/{event.slug}
         </Link>
@@ -187,12 +187,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         ))}
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-[#1e2450]">
+       <div className="mb-6 flex gap-1 overflow-x-auto border-b border-[#dce6ed] pb-px">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm transition-colors cursor-pointer ${tab === t.key ? "text-white border-b-2 border-blue-500" : "text-gray-500 hover:text-gray-300"}`}
+             className={`whitespace-nowrap px-3 py-2 text-sm transition-colors cursor-pointer ${tab === t.key ? "border-b-2 border-[#176b87] font-semibold text-[#176b87]" : "text-[#718096] hover:text-[#152238]"}`}
           >
             {t.label}
           </button>
@@ -200,7 +200,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {tab === "detail" && (
-        <form onSubmit={handleDetailSubmit} className="max-w-2xl space-y-4">
+         <form onSubmit={handleDetailSubmit} className="max-w-2xl space-y-4">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Nama Event</label>
             <input name="nama" defaultValue={event.nama} required className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
@@ -209,7 +209,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <label className="block text-sm text-gray-400 mb-1">Slug</label>
             <input name="slug" defaultValue={event.slug} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 font-mono" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Tanggal Mulai</label>
               <input name="tanggalMulai" type="datetime-local" defaultValue={event.tanggalMulai.slice(0, 16)} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
@@ -270,7 +270,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             <label className="block text-sm text-gray-400 mb-1">Deskripsi</label>
             <textarea name="deskripsi" defaultValue={event.deskripsi || ""} rows={4} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Warna Aksen</label>
               <input name="warnaAksen" type="color" defaultValue={event.warnaAksen} className="h-10 w-full bg-[#111638] border border-[#1e2450] rounded-lg cursor-pointer" />

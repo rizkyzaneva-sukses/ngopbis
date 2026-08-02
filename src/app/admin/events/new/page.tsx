@@ -48,11 +48,13 @@ export default function NewEventPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-bold mb-6">Buat Event Baru</h1>
+      <p className="eyebrow mb-2">Workspace event</p>
+      <h1 className="text-2xl font-bold tracking-tight mb-2">Buat event baru</h1>
+      <p className="mb-7 text-sm text-[#718096]">Siapkan informasi dasar event sebelum dibagikan ke peserta.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-2 rounded-lg">
+          <div className="rounded-xl border border-[#f0caca] bg-[#fff6f6] px-4 py-3 text-sm text-[#a94242]">
             {error}
           </div>
         )}
@@ -67,7 +69,7 @@ export default function NewEventPage() {
           <input name="slug" placeholder="contoh: seminar-bisnis-2024" className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Tanggal Mulai *</label>
             <input name="tanggalMulai" type="datetime-local" required className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
@@ -124,7 +126,7 @@ export default function NewEventPage() {
           <textarea name="deskripsi" rows={4} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Warna Aksen</label>
             <input name="warnaAksen" type="color" defaultValue="#2563eb" className="h-10 w-full bg-[#111638] border border-[#1e2450] rounded-lg cursor-pointer" />
@@ -135,11 +137,11 @@ export default function NewEventPage() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
-          <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+        <div className="flex flex-col gap-3 pt-4 sm:flex-row">
+          <button type="submit" disabled={loading} className="primary-button cursor-pointer disabled:opacity-50">
             {loading ? "Menyimpan..." : "Buat Event"}
           </button>
-          <button type="button" onClick={() => router.back()} className="bg-[#1e2450] hover:bg-[#2a3060] px-6 py-2 rounded-lg text-sm transition-colors cursor-pointer">
+          <button type="button" onClick={() => router.back()} className="secondary-button cursor-pointer">
             Batal
           </button>
         </div>

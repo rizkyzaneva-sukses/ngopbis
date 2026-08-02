@@ -53,9 +53,9 @@ const statusColor: Record<string, string> = {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-      <p className="text-gray-400 text-sm">{label}</p>
-      <p className="text-3xl font-bold mt-1">{value}</p>
+    <div className="admin-card p-4 sm:p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#8a98a8]">{label}</p>
+      <p className="mt-2 text-3xl font-bold tracking-tight text-[#152238]">{value}</p>
     </div>
   );
 }
@@ -63,8 +63,8 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 function BreakdownPanel({ title, items }: { title: string; items: BreakdownItem[] }) {
   const max = items.length > 0 ? Math.max(...items.map((i) => i.count)) : 0;
   return (
-    <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-      <h3 className="font-semibold mb-3">{title}</h3>
+    <div className="admin-card p-4 sm:p-5">
+      <h3 className="mb-3 font-semibold text-[#152238]">{title}</h3>
       {items.length === 0 ? (
         <p className="text-gray-500 text-sm">Belum ada data.</p>
       ) : (
@@ -75,9 +75,9 @@ function BreakdownPanel({ title, items }: { title: string; items: BreakdownItem[
                 <span className="truncate text-gray-300 pr-2">{item.label}</span>
                 <span className="text-gray-400">{item.count}</span>
               </div>
-              <div className="h-1.5 bg-[#1e2450] rounded-full mt-1 overflow-hidden">
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#e8eef3]">
                 <div
-                  className="h-full bg-blue-500 rounded-full"
+                  className="h-full rounded-full bg-[#176b87]"
                   style={{ width: `${max > 0 ? (item.count / max) * 100 : 0}%` }}
                 />
               </div>
@@ -106,12 +106,12 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) {
-    return <p className="text-gray-400">Loading...</p>;
+    return <p className="text-sm text-[#718096]">Memuat dashboard...</p>;
   }
   if (error || !data) {
     return (
-      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-        <p className="text-red-400">{error || "Gagal memuat dashboard"}</p>
+      <div className="admin-card p-5">
+        <p className="text-[#b24b4b]">{error || "Gagal memuat dashboard"}</p>
       </div>
     );
   }
@@ -120,18 +120,18 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">Dashboard</h1>
-        <div className="flex gap-2">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="eyebrow mb-2">Ringkasan aktivitas</p><h1 className="text-2xl font-bold tracking-tight">Dashboard</h1><p className="mt-1 text-sm text-[#718096]">Pantau performa event dan partisipasi peserta.</p></div>
+        <div className="flex flex-wrap gap-2">
           <Link
             href="/admin/events/new"
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="primary-button cursor-pointer"
           >
             Buat Event
           </Link>
           <Link
             href="/admin/participants"
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="secondary-button cursor-pointer"
           >
             Manajemen Peserta
           </Link>
@@ -147,8 +147,8 @@ export default function AdminDashboard() {
         <StatCard label="Kehadiran" value={`${data.attendanceRate}%`} />
       </div>
 
-      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 mb-6">
-        <h2 className="font-semibold mb-4">Pendaftar 14 Hari Terakhir</h2>
+      <div className="admin-card mb-6 p-4 sm:p-5">
+        <h2 className="mb-4 font-semibold text-[#152238]">Pendaftar 14 Hari Terakhir</h2>
         {data.perDay.every((d) => d.count === 0) ? (
           <p className="text-gray-500 text-sm py-8 text-center">Belum ada pendaftar dalam 14 hari terakhir.</p>
         ) : (
@@ -170,8 +170,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-          <h2 className="font-semibold mb-4">Event Terdekat</h2>
+        <div className="admin-card p-4 sm:p-5">
+          <h2 className="mb-4 font-semibold text-[#152238]">Event Terdekat</h2>
           {data.upcoming.length === 0 ? (
             <p className="text-gray-500 text-sm">Tidak ada event terdekat.</p>
           ) : (
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
                 const count = event._count.registrasi;
                 const pct = event.kuota && event.kuota > 0 ? Math.min((count / event.kuota) * 100, 100) : 0;
                 return (
-                  <div key={event.id} className="border border-[#1e2450] rounded-lg p-3">
+                  <div key={event.id} className="rounded-xl border border-[#edf0f4] p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-medium truncate">{event.nama}</p>
@@ -209,8 +209,8 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-          <h2 className="font-semibold mb-4">Aktivitas Terbaru</h2>
+        <div className="admin-card p-4 sm:p-5">
+          <h2 className="mb-4 font-semibold text-[#152238]">Aktivitas Terbaru</h2>
           {data.recent.length === 0 ? (
             <p className="text-gray-500 text-sm">Belum ada aktivitas.</p>
           ) : (

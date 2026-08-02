@@ -98,8 +98,8 @@ export default function CheckinPage({ params }: { params: Promise<{ id: string }
   ];
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-2xl">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <Link href={`/admin/events/${id}`} className="text-gray-400 hover:text-white text-sm">
           &larr; Kembali
         </Link>
@@ -112,11 +112,12 @@ export default function CheckinPage({ params }: { params: Promise<{ id: string }
       </div>
 
       <div className="mb-6">
-        <h1 className="text-xl font-bold">{event.nama}</h1>
-        <p className="text-sm text-gray-400">Mode Check-in Panitia</p>
+        <p className="eyebrow mb-2">Operasional lapangan</p>
+        <h1 className="text-2xl font-bold tracking-tight">{event.nama}</h1>
+        <p className="mt-1 text-sm text-[#718096]">Mode check-in panitia</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 text-center">
           <p className="text-3xl font-bold">{total}</p>
           <p className="text-xs text-gray-400">Total Pendaftar</p>

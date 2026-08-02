@@ -87,14 +87,14 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
+      <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => router.push("/admin/participants")}
           className="text-gray-400 hover:text-white cursor-pointer"
         >
           &larr;
         </button>
-        <h1 className="text-xl font-bold">{peserta.nama}</h1>
+        <div><p className="eyebrow mb-1">Profil peserta</p><h1 className="text-2xl font-bold tracking-tight">{peserta.nama}</h1></div>
         {toast && (
           <div
             className={`fixed right-6 top-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl ${
@@ -109,9 +109,9 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-6">
-          <h2 className="text-sm font-medium mb-4 text-gray-400">Detail Peserta</h2>
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="admin-card p-5 sm:p-6">
+          <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.1em] text-[#718096]">Detail peserta</h2>
           <dl className="space-y-3 text-sm">
             <div>
               <dt className="text-gray-500">No WhatsApp</dt>
@@ -150,15 +150,15 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
           </dl>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-[#111638] border border-[#1e2450] rounded-xl p-6 space-y-4">
-          <h2 className="text-sm font-medium text-gray-400">Edit Data Peserta</h2>
+        <form onSubmit={handleSubmit} className="admin-card space-y-4 p-5 sm:p-6">
+          <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-[#718096]">Edit data peserta</h2>
           <div>
             <label className="block text-sm text-gray-400 mb-1">Nama</label>
             <input
               name="nama"
               defaultValue={peserta.nama}
               required
-              className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+             className="admin-input"
             />
           </div>
           <div>
@@ -166,7 +166,7 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
             <input
               name="domisili"
               defaultValue={peserta.domisili || ""}
-              className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+               className="admin-input"
             />
           </div>
           <div>
@@ -174,7 +174,7 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
             <input
               name="namaBisnis"
               defaultValue={peserta.namaBisnis || ""}
-              className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+               className="admin-input"
             />
           </div>
           <div>
@@ -182,7 +182,7 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
             <select
               name="statusKeanggotaan"
               defaultValue={peserta.statusKeanggotaan || ""}
-              className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+               className="admin-input"
             >
               <option value="">(tidak ada)</option>
               <option value="Umum">Umum</option>
@@ -194,21 +194,21 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
             <input
               name="sumberInformasi"
               defaultValue={peserta.sumberInformasi || ""}
-              className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+               className="admin-input"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+             className="primary-button cursor-pointer disabled:opacity-50"
           >
             {saving ? "Menyimpan..." : "Simpan Perubahan"}
           </button>
         </form>
       </div>
 
-      <div className="bg-[#111638] border border-[#1e2450] rounded-xl">
-        <div className="p-4 border-b border-[#1e2450]">
+      <div className="admin-card overflow-hidden">
+        <div className="border-b border-[#edf0f4] p-4">
           <h2 className="text-sm font-medium">Riwayat Event ({peserta.registrasi.length})</h2>
         </div>
         {peserta.registrasi.length === 0 ? (

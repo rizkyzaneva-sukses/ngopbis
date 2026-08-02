@@ -109,18 +109,18 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
+      <div className="public-shell flex min-h-screen items-center justify-center">
+        <p className="text-sm font-medium text-[#718096]">Menyiapkan formulir...</p>
       </div>
     );
   }
 
   if (!event || event.status !== "PUBLISHED") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="public-shell flex min-h-screen items-center justify-center p-5">
         <div className="text-center">
-          <h1 className="text-xl font-bold text-gray-800">Pendaftaran Tidak Tersedia</h1>
-          <p className="text-gray-500 mt-2">Event belum dibuka atau sudah ditutup.</p>
+          <h1 className="text-xl font-bold text-[#152238]">Pendaftaran tidak tersedia</h1>
+          <p className="mt-2 text-[#718096]">Event belum dibuka atau sudah ditutup.</p>
         </div>
       </div>
     );
@@ -129,11 +129,11 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
   const isQuotaFull = event.kuota !== null && event.totalRegistrasi >= event.kuota;
   if (isQuotaFull) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="public-shell flex min-h-screen items-center justify-center p-5">
         <div className="text-center">
-          <h1 className="text-xl font-bold text-yellow-800">Kuota Penuh</h1>
-          <p className="text-gray-500 mt-2">Maaf, kuota pendaftaran sudah penuh.</p>
-          <Link href={`/event/${slug}`} className="text-sm mt-4 inline-block hover:underline" style={{ color: event.warnaAksen }}>
+          <h1 className="text-xl font-bold text-[#8a5a16]">Kuota penuh</h1>
+          <p className="mt-2 text-[#718096]">Maaf, kuota pendaftaran sudah penuh.</p>
+          <Link href={`/event/${slug}`} className="mt-4 inline-block text-sm font-semibold hover:underline" style={{ color: event.warnaAksen }}>
             Kembali
           </Link>
         </div>
@@ -141,14 +141,14 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+  const inputClass = "field-input";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-lg mx-auto px-4 py-8">
+    <main className="public-shell">
+      <div className="public-container max-w-2xl py-5 sm:py-10">
         <Link
           href={`/event/${slug}`}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#718096] transition hover:text-[#176b87]"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -156,20 +156,25 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
           Kembali ke info event
         </Link>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Form Pendaftaran</h1>
-          <p className="text-sm text-gray-500 mb-6">{event.nama}</p>
+        <div className="surface-card mt-6 overflow-hidden sm:mt-8">
+          <div className="border-b border-[#edf0f4] bg-[#fbfcfd] px-5 py-6 sm:px-8">
+            <p className="eyebrow mb-2">Langkah 1 dari 1</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[#152238]">Form pendaftaran</h1>
+            <p className="mt-2 text-sm leading-6 text-[#718096]">Lengkapi data untuk <span className="font-semibold text-[#526176]">{event.nama}</span>.</p>
+          </div>
+          <div className="p-5 sm:p-8">
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-5">
+            <div className="mb-5 rounded-xl border border-[#f0caca] bg-[#fff6f6] px-4 py-3 text-sm text-[#a94242]">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">No WhatsApp <span className="text-red-500">*</span></label>
+              <label className="field-label">No WhatsApp <span className="text-[#b24b4b]">*</span></label>
               <input
+                type="tel"
                 value={noWa}
                 onChange={(e) => setNoWa(e.target.value)}
                 onBlur={handleNoWaBlur}
@@ -178,7 +183,7 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
                 className={inputClass}
               />
               {autoFilled && (
-                <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
+                <p className="mt-2 flex items-center gap-1 text-xs font-medium text-[#147d64]">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -188,14 +193,14 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap <span className="text-red-500">*</span></label>
+              <label className="field-label">Nama lengkap <span className="text-[#b24b4b]">*</span></label>
               <input value={nama} onChange={(e) => setNama(e.target.value)} required className={inputClass} />
             </div>
 
             {autoFilled && !showAutoFilledFields ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+              <div className="rounded-xl border border-[#c5e5d9] bg-[#f3fbf7] px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-green-700">Data profil terisi otomatis</p>
+                  <p className="text-sm font-semibold text-[#147d64]">Data profil ditemukan</p>
                   <button
                     type="button"
                     onClick={() => setShowAutoFilledFields(true)}
@@ -205,7 +210,7 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
                     Edit data
                   </button>
                 </div>
-                <div className="mt-1.5 text-xs text-green-600 space-y-0.5">
+                  <div className="mt-2 space-y-0.5 text-xs text-[#397b68]">
                   {domisili && <p>Domisili: {domisili}</p>}
                   {namaBisnis && <p>Bisnis: {namaBisnis}</p>}
                   {statusKeanggotaan && <p>Status: {statusKeanggotaan}</p>}
@@ -215,17 +220,17 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Domisili</label>
+                    <label className="field-label">Domisili</label>
                   <input value={domisili} onChange={(e) => setDomisili(e.target.value)} placeholder="Kota / Kabupaten" className={inputClass} />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Bisnis</label>
+                    <label className="field-label">Nama bisnis</label>
                   <input value={namaBisnis} onChange={(e) => setNamaBisnis(e.target.value)} className={inputClass} />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Status Keanggotaan</label>
+                    <label className="field-label">Status keanggotaan</label>
                   <select value={statusKeanggotaan} onChange={(e) => setStatusKeanggotaan(e.target.value)} className={inputClass}>
                     <option value="">Pilih</option>
                     <option value="Umum">Umum</option>
@@ -234,17 +239,17 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Sumber Informasi</label>
+                    <label className="field-label">Sumber informasi</label>
                   <input value={sumberInformasi} onChange={(e) => setSumberInformasi(e.target.value)} placeholder="Dari mana Anda tahu event ini?" className={inputClass} />
                 </div>
               </>
             )}
 
             {event.questions.length > 0 && (
-              <div className="border-t border-gray-200 pt-5 space-y-5">
+              <div className="space-y-5 border-t border-[#edf0f4] pt-6">
                 {event.questions.map((q) => (
                   <div key={q.id}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="field-label">
                       {q.label} {q.wajib && <span className="text-red-500">*</span>}
                     </label>
                     {q.tipe === "TEXT" && (
@@ -324,7 +329,7 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
                               setUploading((prev) => ({ ...prev, [q.id]: false }));
                             }
                           }}
-                          className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer"
+                           className="block w-full text-sm text-[#718096] file:mr-3 file:rounded-lg file:border-0 file:bg-[#e8f4f7] file:px-4 file:py-2 file:font-semibold file:text-[#176b87] hover:file:bg-[#d7edf0] file:cursor-pointer"
                         />
                         {uploading[q.id] && <p className="text-xs text-gray-500 mt-1">Mengupload...</p>}
                         {customAnswers[q.id] && !uploading[q.id] && (
@@ -345,14 +350,15 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 cursor-pointer disabled:opacity-50 mt-2"
+              className="w-full cursor-pointer rounded-xl py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: event.warnaAksen }}
             >
               {submitting ? "Mendaftarkan..." : "Kirim Pendaftaran"}
             </button>
           </form>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

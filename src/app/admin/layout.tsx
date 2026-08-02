@@ -8,6 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [admin, setAdmin] = useState<{ adminNama?: string } | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isLoginPage = pathname === "/admin/login";
 
@@ -43,42 +44,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-gray-100">
-      <nav className="bg-[#111638] border-b border-[#1e2450] px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/admin" className="text-lg font-bold font-mono tracking-tight">
-            Event Pendidikan
+      <div className="admin-shell">
+      <nav className="admin-nav sticky top-0 z-40 border-b border-white/10 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <Link href="/admin" className="flex min-w-0 items-center gap-3" onClick={() => setMenuOpen(false)}>
+            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[#d8eef0] text-xs font-bold text-[#176b87]">EP</span>
+            <span className="min-w-0"><span className="block truncate text-sm font-bold tracking-tight">Event Pendidikan</span><span className="hidden text-[11px] text-[#a8c1ca] sm:block">Workspace admin</span></span>
           </Link>
-          <Link href="/admin" className={`text-sm transition-colors ${pathname === "/admin" ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Dashboard
-          </Link>
-          <Link href="/admin/events" className={`text-sm transition-colors ${pathname.startsWith("/admin/events") ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Events
-          </Link>
-          <Link href="/admin/participants" className={`text-sm transition-colors ${pathname.startsWith("/admin/participants") ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Peserta
-          </Link>
-          <Link href="/admin/admins" className={`text-sm transition-colors ${pathname.startsWith("/admin/admins") ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Admin
-          </Link>
-          <Link href="/admin/audit-log" className={`text-sm transition-colors ${pathname.startsWith("/admin/audit-log") ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Audit Log
-          </Link>
-          <Link href="/admin/guide" className={`text-sm transition-colors ${pathname.startsWith("/admin/guide") ? "text-white" : "text-gray-400 hover:text-white"}`}>
-            Panduan
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{admin?.adminNama}</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-red-400 hover:text-red-300 cursor-pointer"
-          >
-            Logout
+          <button type="button" onClick={() => setMenuOpen((open) => !open)} className="rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-white sm:hidden" aria-expanded={menuOpen}>
+            Menu
           </button>
+          <div className="hidden items-center gap-1 sm:flex">
+            {[
+              ["/admin", "Dashboard"],
+              ["/admin/events", "Events"],
+              ["/admin/participants", "Peserta"],
+              ["/admin/admins", "Admin"],
+              ["/admin/audit-log", "Audit Log"],
+              ["/admin/guide", "Panduan"],
+            ].map(([href, label]) => {
+              const active = href === "/admin" ? pathname === href : pathname.startsWith(href);
+              return <Link key={href} href={href} className={`rounded-lg px-3 py-2 text-sm font-medium transition ${active ? "bg-white/12 text-white" : "text-[#b7cbd2] hover:bg-white/8 hover:text-white"}`}>{label}</Link>;
+            })}
+          </div>
+          <div className="hidden items-center gap-3 sm:flex">
+            <span className="max-w-32 truncate text-sm text-[#b7cbd2]">{admin?.adminNama}</span>
+            <button onClick={handleLogout} className="rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-[#f0b4b4] transition hover:bg-white/10 hover:text-white cursor-pointer">Logout</button>
+          </div>
         </div>
+        {menuOpen && (
+          <div className="mx-auto mt-3 max-w-7xl border-t border-white/10 pt-3 sm:hidden">
+            <div className="grid gap-1">
+              {[
+                ["/admin", "Dashboard"], ["/admin/events", "Events"], ["/admin/participants", "Peserta"], ["/admin/admins", "Admin"], ["/admin/audit-log", "Audit Log"], ["/admin/guide", "Panduan"],
+              ].map(([href, label]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-3 text-sm font-medium text-[#d5e2e6] hover:bg-white/10">{label}</Link>)}
+              <div className="mt-2 flex items-center justify-between border-t border-white/10 px-3 pt-3"><span className="text-sm text-[#b7cbd2]">{admin?.adminNama}</span><button onClick={handleLogout} className="text-sm font-semibold text-[#f0b4b4] cursor-pointer">Logout</button></div>
+            </div>
+          </div>
+        )}
       </nav>
-      <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
     </div>
   );
 }

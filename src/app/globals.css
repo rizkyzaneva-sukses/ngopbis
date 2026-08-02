@@ -5,6 +5,216 @@
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  --ink: #152238;
+  --ink-soft: #526176;
+  --paper: #f7f9fc;
+  --surface: #ffffff;
+  --line: #e5eaf1;
+  --accent: #176b87;
+  --accent-dark: #0f4f66;
+  --accent-soft: #e8f4f7;
+  --success: #147d64;
+  --warning: #a96d19;
+  --danger: #b24b4b;
+}
+
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #c5e4ea;
+  color: var(--ink);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #8bcbd3;
+  outline-offset: 2px;
+}
+
+.public-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(204, 236, 238, 0.6), transparent 30rem),
+    var(--paper);
+  color: var(--ink);
+}
+
+.public-container {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 50px rgba(31, 55, 80, 0.07);
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.primary-button {
+  align-items: center;
+  background: var(--accent);
+  border-radius: 0.75rem;
+  color: white;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 2.875rem;
+  padding: 0.75rem 1.125rem;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.primary-button:hover {
+  background: var(--accent-dark);
+  box-shadow: 0 8px 20px rgba(23, 107, 135, 0.2);
+  transform: translateY(-1px);
+}
+
+.secondary-button {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  color: var(--ink);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 650;
+  justify-content: center;
+  min-height: 2.875rem;
+  padding: 0.75rem 1.125rem;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.secondary-button:hover {
+  background: #f6fafb;
+  border-color: #b8d9df;
+}
+
+.field-label {
+  color: var(--ink);
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+}
+
+.field-input {
+  background: var(--surface);
+  border: 1px solid #d5dee8;
+  border-radius: 0.7rem;
+  color: var(--ink);
+  font-size: 0.9rem;
+  min-height: 2.875rem;
+  padding: 0.7rem 0.85rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  width: 100%;
+}
+
+.field-input::placeholder {
+  color: #99a6b7;
+}
+
+.field-input:focus {
+  border-color: #63aebc;
+  box-shadow: 0 0 0 3px rgba(99, 174, 188, 0.16);
+  outline: none;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background: #f4f7fa;
+  color: var(--ink);
+}
+
+.admin-nav {
+  background: #102a3d;
+  color: #f6fbfc;
+}
+
+.admin-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(31, 55, 80, 0.05);
+}
+
+.admin-input {
+  background: white;
+  border: 1px solid #d5dee8;
+  border-radius: 0.65rem;
+  color: var(--ink);
+  font-size: 0.875rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  width: 100%;
+}
+
+.admin-input:focus {
+  border-color: #63aebc;
+  box-shadow: 0 0 0 3px rgba(99, 174, 188, 0.15);
+  outline: none;
+}
+
+.admin-shell input:not([type="color"]),
+.admin-shell select,
+.admin-shell textarea {
+  background: white !important;
+  border-color: #d5dee8 !important;
+  color: var(--ink) !important;
+}
+
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #99a6b7 !important;
+}
+
+.admin-shell [class~="bg-[#111638]"] {
+  background: white !important;
+  border-color: var(--line) !important;
+}
+
+.admin-shell [class~="bg-[#0a0e27]"] {
+  background: #f8fbfc !important;
+}
+
+@media (max-width: 640px) {
+  .public-container {
+    width: min(100% - 1.25rem, 72rem);
+  }
+
+  .surface-card {
+    border-radius: 1rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    min-height: 3rem;
+  }
 }

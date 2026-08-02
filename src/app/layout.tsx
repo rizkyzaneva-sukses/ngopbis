@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Event Pendidikan",
-  description: "Sistem Registrasi & Absensi Event Pendidikan",
+  title: "Event Pendidikan | Registrasi & Kehadiran",
+  description: "Platform registrasi event pendidikan yang rapi, cepat, dan mudah digunakan.",
 };
 
 export default function RootLayout({

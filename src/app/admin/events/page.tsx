@@ -125,11 +125,11 @@ export default function EventsPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">Daftar Event</h1>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="eyebrow mb-2">Workspace event</p><h1 className="text-2xl font-bold tracking-tight">Daftar event</h1><p className="mt-1 text-sm text-[#718096]">Buat, bagikan, dan pantau pendaftaran event.</p></div>
         <Link
           href="/admin/events/new"
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="primary-button cursor-pointer"
         >
           + Buat Event
         </Link>
@@ -141,12 +141,12 @@ export default function EventsPage() {
           placeholder="Cari nama atau slug..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+           className="admin-input flex-1"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+           className="admin-input"
         >
           <option value="Semua">Semua Status</option>
           <option value="DRAFT">DRAFT</option>
@@ -157,7 +157,7 @@ export default function EventsPage() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortKey)}
-          className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+           className="admin-input"
         >
           <option value="terbaru">Terbaru</option>
           <option value="tanggal">Tanggal Terdekat</option>
@@ -166,7 +166,7 @@ export default function EventsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+           <p className="text-sm text-[#718096]">Memuat event...</p>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p>{events.length === 0 ? "Belum ada event." : "Tidak ada event yang cocok."}</p>
@@ -188,7 +188,7 @@ export default function EventsPage() {
             return (
               <div
                 key={event.id}
-                className="bg-[#111638] border border-[#1e2450] rounded-xl p-5 hover:border-blue-500/50 transition-colors"
+                 className="admin-card p-5 transition-colors hover:border-[#a6d2d9]"
               >
                 <Link href={`/admin/events/${event.id}`} className="block">
                   <div className="flex items-start justify-between">

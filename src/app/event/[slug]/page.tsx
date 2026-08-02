@@ -39,18 +39,19 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
+      <div className="public-shell flex min-h-screen items-center justify-center">
+        <p className="text-sm font-medium text-[#718096]">Memuat informasi event...</p>
       </div>
     );
   }
 
   if (notFound || !event) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="public-shell flex min-h-screen items-center justify-center p-5">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Event Tidak Ditemukan</h1>
-          <p className="text-gray-500 mt-2">Link yang Anda buka tidak valid.</p>
+          <p className="eyebrow mb-3">404 / Event</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#152238]">Event tidak ditemukan</h1>
+          <p className="mt-2 text-[#718096]">Link yang Anda buka tidak valid atau event sudah dihapus.</p>
         </div>
       </div>
     );
@@ -60,32 +61,41 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
   const isQuotaFull = event.kuota !== null && event.totalRegistrasi >= event.kuota;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="public-shell">
+      <header className="public-container flex items-center justify-between py-5">
+        <Link href="/" className="flex items-center gap-2.5 text-sm font-bold tracking-tight text-[#152238]">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#102a3d] text-[10px] font-bold text-white">EP</span>
+          Event Pendidikan
+        </Link>
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a98a8]">Informasi event</span>
+      </header>
       {event.bannerUrl && (
-        <div className="w-full bg-white flex justify-center">
+        <div className="public-container overflow-hidden rounded-2xl border border-[#e5eaf1] bg-white shadow-[0_18px_50px_rgba(31,55,80,0.07)]">
           <img
             src={event.bannerUrl}
             alt={event.nama}
-            className="w-full max-w-2xl object-contain"
+            className="max-h-[32rem] w-full object-cover sm:object-contain"
           />
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="public-container max-w-3xl py-8 pb-12 sm:py-12">
+        <p className="eyebrow mb-3">Anda diundang</p>
         <h1
-          className="text-2xl md:text-3xl font-bold"
+          className="max-w-2xl text-3xl font-bold leading-tight tracking-[-0.035em] sm:text-5xl"
           style={{ color: event.warnaAksen }}
         >
           {event.nama}
         </h1>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[#526176]">Siapkan waktu Anda dan daftar untuk mengamankan tempat di event ini.</p>
 
-        <div className="mt-4 space-y-3">
+        <div className="surface-card mt-8 grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#176b87]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <div className="text-gray-700">
-              <p className="font-medium">
+            <div className="text-[#152238]">
+              <p className="font-semibold">
                 {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
                   weekday: "long",
                   day: "numeric",
@@ -93,7 +103,7 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
                   year: "numeric",
                 })}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="mt-1 text-sm text-[#718096]">
                 Pukul {new Date(event.tanggalMulai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
                 {event.tanggalSelesai && (
                   <> - {new Date(event.tanggalSelesai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB</>
@@ -104,18 +114,18 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
 
           {event.lokasi && (
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#176b87]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <div>
-                <p className="text-gray-700 font-medium">{event.lokasi}</p>
+                <p className="font-semibold text-[#152238]">{event.lokasi}</p>
                 {event.googleMapsUrl && (
                   <a
                     href={event.googleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm inline-flex items-center gap-1 mt-1 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold hover:underline"
                     style={{ color: event.warnaAksen }}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,22 +140,22 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {event.deskripsi && (
-          <div className="mt-6 text-gray-700 whitespace-pre-wrap leading-relaxed">
+          <div className="mt-8 whitespace-pre-wrap leading-8 text-[#526176]">
             {event.deskripsi}
           </div>
         )}
 
         <div className="mt-8">
           {isClosed || isQuotaFull ? (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-              <p className="text-yellow-800 font-medium">
+            <div className="rounded-2xl border border-[#ead9b7] bg-[#fff9ef] p-6 text-center">
+              <p className="font-semibold text-[#8a5a16]">
                 {isQuotaFull ? "Kuota pendaftaran sudah penuh." : "Pendaftaran sudah ditutup."}
               </p>
             </div>
           ) : (
             <Link
               href={`/event/${event.slug}/register`}
-              className="block w-full text-center py-4 rounded-xl text-white font-semibold text-lg transition-all hover:opacity-90 shadow-lg"
+              className="block w-full rounded-xl py-4 text-center text-base font-bold text-white shadow-lg transition-all hover:opacity-90 sm:text-lg"
               style={{ backgroundColor: event.warnaAksen }}
             >
               Saya Mau Daftar
@@ -154,11 +164,11 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {event.kuota && !isQuotaFull && (
-          <p className="text-center text-sm text-gray-400 mt-3">
+          <p className="mt-3 text-center text-sm text-[#718096]">
             Sisa kuota: {event.kuota - event.totalRegistrasi} dari {event.kuota}
           </p>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -33,38 +33,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-white text-center mb-2 font-mono">
-          Event Pendidikan
-        </h1>
-        <p className="text-gray-400 text-center text-sm mb-8">Admin Panel</p>
+    <main className="flex min-h-screen items-center justify-center bg-[#102a3d] p-4 sm:p-6">
+      <div className="absolute inset-0 opacity-40" style={{ background: "radial-gradient(circle at 15% 10%, #3b8c9b, transparent 30%), radial-gradient(circle at 85% 90%, #176b87, transparent 34%)" }} />
+      <div className="relative w-full max-w-md">
+        <div className="mb-7 text-center text-white">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d8eef0] text-sm font-bold text-[#176b87] shadow-lg">EP</div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a8cbd1]">Workspace admin</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Event Pendidikan</h1>
+          <p className="mt-2 text-sm text-[#b7cbd2]">Kelola event, peserta, dan kehadiran dalam satu ruang.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="bg-[#111638] rounded-xl p-6 border border-[#1e2450]">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white p-6 shadow-2xl sm:p-8">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-2 rounded-lg mb-4">
+            <div className="mb-5 rounded-xl border border-[#f0caca] bg-[#fff6f6] px-4 py-3 text-sm text-[#a94242]">
               {error}
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
+            <label className="field-label">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="field-input"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm text-gray-400 mb-1">Password</label>
+            <label className="field-label">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#0a0e27] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="field-input"
               required
             />
           </div>
@@ -72,12 +75,12 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="primary-button w-full cursor-pointer disabled:opacity-50"
           >
             {loading ? "Loading..." : "Login"}
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

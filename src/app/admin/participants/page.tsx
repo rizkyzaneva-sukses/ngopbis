@@ -39,35 +39,35 @@ export default function ParticipantsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">Database Peserta</h1>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="eyebrow mb-2">Database terpusat</p><h1 className="text-2xl font-bold tracking-tight">Peserta</h1><p className="mt-1 text-sm text-[#718096]">Kelola profil dan riwayat kehadiran peserta.</p></div>
         <Link
           href="/api/peserta/export"
           target="_blank"
-          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#147d64] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#0f654f]"
         >
           Export Excel
         </Link>
       </div>
 
-      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="admin-card mb-6 p-4 sm:p-5">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Cari nama / No WA..."
-            className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="admin-input"
           />
           <input
             value={domisili}
             onChange={(e) => setDomisili(e.target.value)}
             placeholder="Domisili..."
-            className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="admin-input"
           />
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="admin-input"
           >
             <option value="">Semua Status</option>
             <option value="Umum">Umum</option>
@@ -83,10 +83,10 @@ export default function ParticipantsPage() {
           <p>Tidak ada peserta ditemukan.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-[#111638] border border-[#1e2450] rounded-xl">
+        <div className="admin-card hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#1e2450] text-gray-400 text-left">
+              <tr className="border-b border-[#edf0f4] text-left text-[#718096]">
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">No WA</th>
                 <th className="px-4 py-3">Domisili</th>
@@ -99,24 +99,24 @@ export default function ParticipantsPage() {
             </thead>
             <tbody>
               {peserta.map((p) => (
-                <tr key={p.id} className="border-b border-[#1e2450]/50 hover:bg-[#0a0e27]/40">
+                <tr key={p.id} className="border-b border-[#edf0f4] hover:bg-[#f8fbfc]">
                   <td className="px-4 py-3 font-medium">{p.nama}</td>
                   <td className="px-4 py-3 font-mono text-xs">{p.noWa}</td>
-                  <td className="px-4 py-3 text-gray-400">{p.domisili || "-"}</td>
-                  <td className="px-4 py-3 text-gray-400">{p.namaBisnis || "-"}</td>
+                  <td className="px-4 py-3 text-[#718096]">{p.domisili || "-"}</td>
+                  <td className="px-4 py-3 text-[#718096]">{p.namaBisnis || "-"}</td>
                   <td className="px-4 py-3">
                     {p.statusKeanggotaan && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                      <span className="rounded-full bg-[#e8f4f7] px-2 py-0.5 text-xs font-semibold text-[#176b87]">
                         {p.statusKeanggotaan}
                       </span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">{p.totalEvent}</td>
-                  <td className="px-4 py-3 text-center text-green-400">{p.totalHadir}</td>
+                  <td className="px-4 py-3 text-center font-semibold text-[#147d64]">{p.totalHadir}</td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/participants/${p.id}`}
-                      className="text-blue-400 hover:underline text-xs cursor-pointer"
+                      className="cursor-pointer text-xs font-semibold text-[#176b87] hover:underline"
                     >
                       Detail
                     </Link>
@@ -125,6 +125,24 @@ export default function ParticipantsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && peserta.length > 0 && (
+        <div className="grid gap-3 md:hidden">
+          {peserta.map((p) => (
+            <Link key={p.id} href={`/admin/participants/${p.id}`} className="admin-card block p-4 transition hover:border-[#a6d2d9]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0"><p className="truncate font-bold text-[#152238]">{p.nama}</p><p className="mt-1 font-mono text-xs text-[#718096]">{p.noWa}</p></div>
+                {p.statusKeanggotaan && <span className="rounded-full bg-[#e8f4f7] px-2.5 py-1 text-[11px] font-bold text-[#176b87]">{p.statusKeanggotaan}</span>}
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#edf0f4] pt-3 text-xs">
+                <div><p className="text-[#8a98a8]">Domisili</p><p className="mt-1 font-semibold text-[#526176]">{p.domisili || "-"}</p></div>
+                <div><p className="text-[#8a98a8]">Partisipasi</p><p className="mt-1 font-semibold text-[#526176]">{p.totalEvent} event <span className="text-[#147d64]">/ {p.totalHadir} hadir</span></p></div>
+              </div>
+              <p className="mt-4 text-xs font-bold text-[#176b87]">Lihat detail peserta</p>
+            </Link>
+          ))}
         </div>
       )}
     </div>

@@ -25,6 +25,7 @@ export default function EventsPage() {
   const [sort, setSort] = useState<SortKey>("terbaru");
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [previewSlug, setPreviewSlug] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -111,6 +112,12 @@ export default function EventsPage() {
     } finally {
       setBusyId(null);
     }
+  };
+
+  const handlePreview = (e: React.MouseEvent, slug: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPreviewSlug(slug);
   };
 
   return (
@@ -235,34 +242,71 @@ export default function EventsPage() {
                   </div>
                 </Link>
 
-                 <div className="mt-4 flex flex-wrap gap-2 border-t border-[#edf0f4] pt-4">
-                  <button
-                    type="button"
-                    onClick={(e) => handleCopyLink(e, event.slug)}
-                     className="primary-button flex-1 cursor-pointer sm:flex-none"
-                  >
-                    Copy Link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDuplicate(e, event.id)}
-                    disabled={busyId === event.id}
-                     className="secondary-button flex-1 cursor-pointer sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Duplikat
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDelete(e, event.id)}
-                    disabled={busyId === event.id}
-                     className="flex-1 cursor-pointer rounded-xl bg-[#b24b4b] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#963d3d] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
-                  >
-                    Hapus
-                  </button>
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-[#edf0f4] pt-4">
+                   <button
+                     type="button"
+                     onClick={(e) => handleCopyLink(e, event.slug)}
+                      className="min-h-9 cursor-pointer rounded-lg bg-[#176b87] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#0f4f66]"
+                   >
+                     Copy Link
+                   </button>
+                   <button
+                     type="button"
+                     onClick={(e) => handlePreview(e, event.slug)}
+                     className="min-h-9 cursor-pointer rounded-lg border border-[#b8d9df] bg-[#f2fafb] px-3 py-2 text-xs font-bold text-[#176b87] transition hover:bg-[#e3f3f5]"
+                   >
+                     Preview
+                   </button>
+                   <button
+                     type="button"
+                     onClick={(e) => handleDuplicate(e, event.id)}
+                     disabled={busyId === event.id}
+                      className="min-h-9 cursor-pointer rounded-lg border border-[#d5dee8] bg-white px-3 py-2 text-xs font-bold text-[#526176] transition hover:border-[#a6d2d9] hover:bg-[#f8fbfc] disabled:cursor-not-allowed disabled:opacity-50"
+                   >
+                     Duplikat
+                   </button>
+                   <button
+                     type="button"
+                     onClick={(e) => handleDelete(e, event.id)}
+                     disabled={busyId === event.id}
+                      className="min-h-9 cursor-pointer rounded-lg bg-[#fff2f2] px-3 py-2 text-xs font-bold text-[#b24b4b] transition hover:bg-[#fce2e2] disabled:cursor-not-allowed disabled:opacity-50"
+                   >
+                     Hapus
+                   </button>
                 </div>
               </div>
             );
-          })}
+         })}
+        </div>
+      )}
+
+      {previewSlug && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#102a3d]/75 p-4 backdrop-blur-sm sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Preview event versi mobile"
+          onClick={() => setPreviewSlug(null)}
+        >
+          <div
+            className="flex max-h-[calc(100vh-2rem)] w-full max-w-[27rem] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-h-[calc(100vh-3rem)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#edf0f4] px-4 py-3">
+              <div><p className="text-sm font-bold text-[#152238]">Preview mobile</p><p className="text-[11px] text-[#718096]">Tampilan peserta pada layar smartphone</p></div>
+              <button type="button" onClick={() => setPreviewSlug(null)} className="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-[#718096] transition hover:bg-[#f4f7fa] hover:text-[#152238]" aria-label="Tutup preview">&times;</button>
+            </div>
+            <div className="flex min-h-0 justify-center overflow-auto bg-[#eaf0f3] p-3 sm:p-5">
+              <div className="flex h-[min(720px,calc(100vh-9rem))] w-[min(390px,calc(100vw-3rem))] min-w-0 flex-col overflow-hidden rounded-[2rem] border-[7px] border-[#152238] bg-white shadow-xl">
+                <div className="flex h-5 flex-none items-center justify-center bg-[#152238]"><span className="h-1.5 w-16 rounded-full bg-white/30" /></div>
+                <iframe
+                  src={`/event/${previewSlug}`}
+                  title="Preview event versi mobile"
+                  className="min-h-0 flex-1 border-0 bg-white"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

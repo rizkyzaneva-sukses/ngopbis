@@ -24,6 +24,13 @@ body {
   background: var(--paper);
   color: var(--ink);
   text-rendering: optimizeLegibility;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -50,6 +57,9 @@ textarea:focus-visible {
 
 .public-shell {
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-wrap: anywhere;
   background:
     radial-gradient(circle at 8% 0%, rgba(204, 236, 238, 0.6), transparent 30rem),
     var(--paper);
@@ -57,8 +67,17 @@ textarea:focus-visible {
 }
 
 .public-container {
+  max-width: 100%;
   width: min(100% - 2rem, 72rem);
   margin-inline: auto;
+}
+
+.public-container h1,
+.public-container h2,
+.public-container h3,
+.public-container p,
+.public-container a {
+  overflow-wrap: anywhere;
 }
 
 .surface-card {
@@ -66,6 +85,10 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 1.25rem;
   box-shadow: 0 18px 50px rgba(31, 55, 80, 0.07);
+}
+
+.surface-card > * {
+  min-width: 0;
 }
 
 .eyebrow {

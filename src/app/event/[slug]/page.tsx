@@ -62,19 +62,19 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
 
   return (
     <main className="public-shell">
-      <header className="public-container flex items-center justify-between py-5">
-        <Link href="/" className="flex items-center gap-2.5 text-sm font-bold tracking-tight text-[#152238]">
+      <header className="public-container flex min-w-0 items-center justify-between gap-3 py-5">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-[#152238]">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#102a3d] text-[10px] font-bold text-white">EP</span>
-          Event Pendidikan
+          <span className="truncate">Event Pendidikan</span>
         </Link>
-        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a98a8]">Informasi event</span>
+        <span className="hidden flex-none text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a98a8] sm:block">Informasi event</span>
       </header>
       {event.bannerUrl && (
         <div className="public-container overflow-hidden rounded-2xl border border-[#e5eaf1] bg-white shadow-[0_18px_50px_rgba(31,55,80,0.07)]">
           <img
             src={event.bannerUrl}
             alt={event.nama}
-            className="max-h-[32rem] w-full object-cover sm:object-contain"
+          className="block max-h-[32rem] max-w-full object-cover sm:object-contain"
           />
         </div>
       )}
@@ -82,19 +82,19 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
       <div className="public-container max-w-3xl py-8 pb-12 sm:py-12">
         <p className="eyebrow mb-3">Anda diundang</p>
         <h1
-          className="max-w-2xl text-3xl font-bold leading-tight tracking-[-0.035em] sm:text-5xl"
+          className="max-w-full break-words text-3xl font-bold leading-tight tracking-[-0.035em] sm:text-5xl"
           style={{ color: event.warnaAksen }}
         >
           {event.nama}
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[#526176]">Siapkan waktu Anda dan daftar untuk mengamankan tempat di event ini.</p>
+        <p className="mt-4 max-w-2xl break-words text-base leading-7 text-[#526176]">Siapkan waktu Anda dan daftar untuk mengamankan tempat di event ini.</p>
 
         <div className="surface-card mt-8 grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#176b87]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <div className="text-[#152238]">
+            <div className="min-w-0 text-[#152238]">
               <p className="font-semibold">
                 {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
                   weekday: "long",
@@ -113,19 +113,19 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
           </div>
 
           {event.lokasi && (
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#176b87]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <div>
-                <p className="font-semibold text-[#152238]">{event.lokasi}</p>
+              <div className="min-w-0">
+                <p className="break-words font-semibold text-[#152238]">{event.lokasi}</p>
                 {event.googleMapsUrl && (
                   <a
                     href={event.googleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold hover:underline"
+                    className="mt-2 inline-flex max-w-full items-center gap-1 break-all text-sm font-semibold hover:underline"
                     style={{ color: event.warnaAksen }}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,7 +140,7 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {event.deskripsi && (
-          <div className="mt-8 whitespace-pre-wrap leading-8 text-[#526176]">
+          <div className="mt-8 break-words whitespace-pre-wrap leading-8 text-[#526176]">
             {event.deskripsi}
           </div>
         )}

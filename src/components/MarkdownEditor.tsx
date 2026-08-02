@@ -12,21 +12,30 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
   const [value, setValue] = useState(defaultValue || "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const restoreSelection = (start: number, end: number, scrollTop: number) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    requestAnimationFrame(() => {
+      textarea.focus({ preventScroll: true });
+      textarea.setSelectionRange(start, end);
+      textarea.scrollTop = scrollTop;
+    });
+  };
+
   const replaceSelection = (prefix: string, suffix = prefix) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const scrollTop = textarea.scrollTop;
     const selected = value.slice(start, end);
     const next = `${value.slice(0, start)}${prefix}${selected}${suffix}${value.slice(end)}`;
     setValue(next);
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const selectionStart = start + prefix.length;
-      textarea.setSelectionRange(selectionStart, selectionStart + selected.length);
-    });
+    const selectionStart = start + prefix.length;
+    restoreSelection(selectionStart, selectionStart + selected.length, scrollTop);
   };
 
   const getLineRange = (start: number, end: number) => {
@@ -40,9 +49,13 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    let start = textarea.selectionStart;
-    let end = textarea.selectionEnd;
-    if (start === end) {
+    const originalStart = textarea.selectionStart;
+    const originalEnd = textarea.selectionEnd;
+    const scrollTop = textarea.scrollTop;
+    const hasSelection = originalStart !== originalEnd;
+    let start = originalStart;
+    let end = originalEnd;
+    if (!hasSelection) {
       const range = getLineRange(start, end);
       start = range.lineStart;
       end = range.lineEnd;
@@ -56,10 +69,14 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
     const next = `${value.slice(0, start)}${formatted}${value.slice(end)}`;
     setValue(next);
 
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start, start + formatted.length);
-    });
+    if (hasSelection) {
+      restoreSelection(start, start + formatted.length, scrollTop);
+    } else {
+      const firstLineIndent = lines[0].match(/^\s*/)?.[0] || "";
+      const firstMarker = numbered ? "1. " : prefix;
+      const cursor = originalStart + firstLineIndent.length + firstMarker.length;
+      restoreSelection(cursor, cursor, scrollTop);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -139,6 +156,7 @@ export default function MarkdownEditor({ name, defaultValue = "", rows = 7 }: Ma
             key={button.title}
             type="button"
             title={button.title}
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => handleToolbar(button.action)}
             className="min-h-8 min-w-8 rounded-lg px-2 text-xs font-bold text-[#526176] transition hover:bg-[#e8f4f7] hover:text-[#176b87]"
           >

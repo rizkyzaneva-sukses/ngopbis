@@ -3,6 +3,7 @@
 import { useEffect, useState, use, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import MarkdownEditor from "@/components/MarkdownEditor";
 
 interface EventQuestion {
   id: string;
@@ -255,7 +256,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             {uploadingBanner && <p className="text-xs text-gray-500 mt-1">Mengupload...</p>}
             {bannerUrl && (
               <div className="mt-2 relative inline-block">
-                <img src={bannerUrl} alt="Preview" className="max-h-32 rounded-lg" />
+                 <img src={bannerUrl} alt="Preview" className="block h-auto max-w-full rounded-lg object-contain" />
                 <button
                   type="button"
                   onClick={() => setBannerUrl(null)}
@@ -268,7 +269,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           </div>
           <div>
             <label className="block text-sm text-gray-400 mb-1">Deskripsi</label>
-            <textarea name="deskripsi" defaultValue={event.deskripsi || ""} rows={4} className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+           <MarkdownEditor name="deskripsi" defaultValue={event.deskripsi} rows={7} />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>

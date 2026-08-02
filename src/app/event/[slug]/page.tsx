@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import FormattedDescription from "@/components/FormattedDescription";
 
 interface EventData {
   id: string;
@@ -74,7 +75,7 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
           <img
             src={event.bannerUrl}
             alt={event.nama}
-          className="block max-h-[32rem] max-w-full object-cover sm:object-contain"
+            className="block h-auto w-full max-w-full object-contain"
           />
         </div>
       )}
@@ -140,8 +141,8 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
         </div>
 
         {event.deskripsi && (
-          <div className="mt-8 break-words whitespace-pre-wrap leading-8 text-[#526176]">
-            {event.deskripsi}
+          <div className="mt-8 break-words leading-8 text-[#526176]">
+            <FormattedDescription value={event.deskripsi} />
           </div>
         )}
 

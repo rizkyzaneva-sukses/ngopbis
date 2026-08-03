@@ -10,14 +10,36 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const events = await getPrisma().event.findMany({
+  const prisma = getPrisma();
+  const events = await prisma.event.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { registrasi: true } },
+      _count: {
+        select: {
+          registrasi: true,
+          feedback: true,
+        },
+      },
     },
   });
 
-  return NextResponse.json(events);
+  const hadirGroups = await prisma.registrasi.groupBy({
+    by: ["eventId"],
+    where: { status: "HADIR" },
+    _count: { _all: true },
+  });
+  const hadirMap = new Map(hadirGroups.map((g) => [g.eventId, g._count._all]));
+
+  const withSummary = events.map((event) => ({
+    ...event,
+    summary: {
+      daftar: event._count.registrasi,
+      hadir: hadirMap.get(event.id) || 0,
+      feedback: event._count.feedback,
+    },
+  }));
+
+  return NextResponse.json(withSummary);
 }
 
 export async function POST(req: NextRequest) {

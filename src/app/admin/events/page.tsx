@@ -12,7 +12,12 @@ interface EventItem {
   lokasi: string | null;
   kuota: number | null;
   warnaAksen: string | null;
-  _count: { registrasi: number };
+  _count: { registrasi: number; feedback?: number };
+  summary?: {
+    daftar: number;
+    hadir: number;
+    feedback: number;
+  };
 }
 
 type SortKey = "terbaru" | "tanggal" | "peserta";
@@ -186,7 +191,11 @@ export default function EventsPage() {
       ) : (
         <div className="grid gap-4">
           {filtered.map((event) => {
-            const count = event._count.registrasi;
+            const count = event.summary?.daftar ?? event._count.registrasi;
+            const hadir = event.summary?.hadir ?? 0;
+            const feedback = event.summary?.feedback ?? event._count.feedback ?? 0;
+            const hadirPct = count > 0 ? Math.round((hadir / count) * 100) : 0;
+            const feedbackPct = hadir > 0 ? Math.round((feedback / hadir) * 100) : 0;
             const kuota = event.kuota;
             const isFull = kuota !== null && count >= kuota;
             const progress = kuota ? Math.min(100, (count / kuota) * 100) : 0;
@@ -218,6 +227,24 @@ export default function EventsPage() {
                       <span className={`text-xs px-2 py-1 rounded-full ${statusColor[event.status] || ""}`}>
                         {event.status}
                       </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className="rounded-xl border border-[#edf0f4] bg-[#f8fbfc] px-3 py-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a98a8]">Daftar</p>
+                      <p className="mt-1 text-lg font-bold text-[#152238]">{count}</p>
+                      <p className="text-xs text-[#718096]">{kuota ? `${Math.round(progress)}% kuota` : "Tanpa kuota"}</p>
+                    </div>
+                    <div className="rounded-xl border border-[#edf0f4] bg-[#f8fbfc] px-3 py-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a98a8]">Hadir</p>
+                      <p className="mt-1 text-lg font-bold text-[#147d64]">{hadir}</p>
+                      <p className="text-xs text-[#718096]">{hadirPct}% dari daftar</p>
+                    </div>
+                    <div className="rounded-xl border border-[#edf0f4] bg-[#f8fbfc] px-3 py-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a98a8]">Feedback</p>
+                      <p className="mt-1 text-lg font-bold text-[#176b87]">{feedback}</p>
+                      <p className="text-xs text-[#718096]">{feedbackPct}% dari hadir</p>
                     </div>
                   </div>
 

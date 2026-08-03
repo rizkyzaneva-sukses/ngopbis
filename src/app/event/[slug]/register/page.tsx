@@ -240,7 +240,13 @@ export default function RegisterPage({ params }: { params: Promise<{ slug: strin
 
                 <div>
                     <label className="field-label">Sumber informasi</label>
-                  <input value={sumberInformasi} onChange={(e) => setSumberInformasi(e.target.value)} placeholder="Dari mana Anda tahu event ini?" className={inputClass} />
+                  <select value={sumberInformasi} onChange={(e) => setSumberInformasi(e.target.value)} className={inputClass}>
+                    <option value="">Pilih</option>
+                    <option value="Whatsapp Grup">Whatsapp Grup</option>
+                    <option value="Rekomendasi Teman">Rekomendasi Teman</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
                 </div>
               </>
             )}

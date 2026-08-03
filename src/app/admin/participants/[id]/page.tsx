@@ -191,11 +191,17 @@ export default function ParticipantDetailPage({ params }: { params: Promise<{ id
           </div>
           <div>
             <label className="block text-sm text-gray-400 mb-1">Sumber Informasi</label>
-            <input
+            <select
               name="sumberInformasi"
               defaultValue={peserta.sumberInformasi || ""}
                className="admin-input"
-            />
+            >
+              <option value="">(tidak ada)</option>
+              <option value="Whatsapp Grup">Whatsapp Grup</option>
+              <option value="Rekomendasi Teman">Rekomendasi Teman</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
           </div>
           <button
             type="submit"

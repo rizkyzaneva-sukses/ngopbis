@@ -53,6 +53,7 @@ model Event {
 
   questions    EventQuestion[]
   registrasi   Registrasi[]
+  feedback     Feedback[]
 }
 
 model EventQuestion {
@@ -96,10 +97,25 @@ model Registrasi {
   event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   peserta Peserta  @relation(fields: [pesertaId], references: [id], onDelete: Cascade)
   jawaban JawabanKustom[]
+  feedback Feedback?
 
   @@unique([eventId, pesertaId])
   @@index([eventId])
   @@index([pesertaId])
+}
+
+model Feedback {
+  id           String   @id @default(cuid())
+  registrasiId String   @unique
+  eventId      String
+  rating       Int
+  komentar     String?
+  waktuIsi     DateTime @default(now())
+
+  registrasi Registrasi @relation(fields: [registrasiId], references: [id], onDelete: Cascade)
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
 }
 
 model JawabanKustom {

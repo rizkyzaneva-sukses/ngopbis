@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import FormattedDescription from "@/components/FormattedDescription";
 
@@ -21,8 +21,7 @@ interface EventData {
   questions: Array<{ id: string; label: string; tipe: string; opsiJawaban: string[] | null; wajib: boolean }>;
 }
 
-export default function EventLandingPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+export default function EventLanding({ slug }: { slug: string }) {
   const [event, setEvent] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -63,13 +62,6 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
 
   return (
     <main className="public-shell">
-      <header className="public-container flex min-w-0 items-center justify-between gap-3 py-5">
-        <Link href="/" className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-[#152238]">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#102a3d] text-[10px] font-bold text-white">EP</span>
-          <span className="truncate">Event Pendidikan</span>
-        </Link>
-        <span className="hidden flex-none text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8a98a8] sm:block">Informasi event</span>
-      </header>
       {event.bannerUrl && (
         <div className="public-container overflow-hidden rounded-2xl border border-[#e5eaf1] bg-white shadow-[0_18px_50px_rgba(31,55,80,0.07)]">
           <img

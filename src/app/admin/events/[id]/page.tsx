@@ -42,7 +42,7 @@ interface Registrasi {
   jawaban: Array<{ nilai: string; eventQuestion: { label: string } }>;
 }
 
-type Tab = "detail" | "questions" | "thankyou" | "notifikasi" | "checkin_qr" | "registrations" | "report";
+type Tab = "detail" | "questions" | "thankyou" | "notifikasi" | "checkin_qr" | "registrations" | "report" | "feedback";
 
 export default function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -89,6 +89,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     { key: "checkin_qr", label: "QR Check-in" },
     { key: "registrations", label: `Peserta (${event._count.registrasi})` },
     { key: "report", label: "Laporan" },
+    { key: "feedback", label: "Laporan Feedback" },
   ];
 
   const updateEvent = async (data: Record<string, unknown>, redirectAfterSave = false) => {
@@ -355,6 +356,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       {tab === "report" && (
         <ReportTab registrations={registrations} event={event} />
       )}
+
+      {tab === "feedback" && <FeedbackReportTab eventId={id} />}
     </div>
   );
 }
@@ -655,18 +658,28 @@ function ReportTab({ registrations, event }: { registrations: Registrasi[]; even
   );
 }
 
-function CheckinQRTab({ slug, eventNama, eventId }: { slug: string; eventNama: string; eventId: string }) {
-  const checkinUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/event/${slug}/checkin`
-    : `/event/${slug}/checkin`;
-
+function QrCard({
+  title,
+  description,
+  url,
+  slug,
+  filePrefix,
+  steps,
+}: {
+  title: string;
+  description: string;
+  url: string;
+  slug: string;
+  filePrefix: string;
+  steps: string[];
+}) {
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
-      <head><title>QR Check-in - ${eventNama}</title>
+      <head><title>${title} - ${slug}</title>
       <style>
         body { font-family: sans-serif; text-align: center; padding: 40px; }
         h1 { font-size: 24px; margin-bottom: 8px; }
@@ -679,19 +692,15 @@ function CheckinQRTab({ slug, eventNama, eventId }: { slug: string; eventNama: s
       </style>
       </head>
       <body>
-        <h1>${eventNama}</h1>
-        <p>Scan QR code untuk check-in kehadiran</p>
+        <h1>${title}</h1>
+        <p>${description}</p>
         <div>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkinUrl)}" width="300" height="300" />
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}" width="300" height="300" />
         </div>
-        <p class="url">${checkinUrl}</p>
+        <p class="url">${url}</p>
         <div class="instructions">
-          <h3>Cara Check-in:</h3>
-          <ol>
-            <li>Scan QR code di atas pakai kamera HP</li>
-            <li>Masukkan No WhatsApp yang didaftarkan</li>
-            <li>Klik "Konfirmasi Hadir"</li>
-          </ol>
+          <h3>Cara pakai:</h3>
+          <ol>${steps.map((step) => `<li>${step}</li>`).join("")}</ol>
         </div>
       </body>
       </html>
@@ -701,58 +710,154 @@ function CheckinQRTab({ slug, eventNama, eventId }: { slug: string; eventNama: s
   };
 
   return (
-    <div className="max-w-xl">
+    <div className="admin-card p-5 text-center sm:p-6">
+      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <p className="mb-6 text-sm text-[#718096]">{description}</p>
+      <div className="mb-4 inline-block rounded-xl bg-white p-4">
+        <img
+          src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`}
+          alt={title}
+          width={220}
+          height={220}
+        />
+      </div>
+      <p className="mb-4 break-all font-mono text-xs text-[#718096]">{url}</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <button onClick={handlePrint} className="primary-button cursor-pointer px-4 py-2 text-sm">Cetak</button>
+        <a
+          href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}&format=png`}
+          download={`${filePrefix}-${slug}.png`}
+          className="secondary-button px-4 py-2 text-sm"
+        >
+          Download PNG
+        </a>
+      </div>
+      <ol className="mt-5 list-decimal space-y-1 pl-5 text-left text-xs text-[#718096]">
+        {steps.map((step) => <li key={step}>{step}</li>)}
+      </ol>
+    </div>
+  );
+}
+
+function CheckinQRTab({ slug, eventId }: { slug: string; eventNama: string; eventId: string }) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const checkinUrl = `${origin}/event/${slug}/checkin`;
+  const feedbackUrl = `${origin}/event/${slug}/feedback`;
+
+  return (
+    <div className="space-y-6">
       <Link
         href={`/admin/events/${eventId}/checkin`}
-        className="block w-full text-center bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-sm font-medium transition-colors cursor-pointer mb-6"
+        className="block w-full rounded-xl bg-[#147d64] px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-[#0f654f]"
       >
         Buka Mode Check-in Panitia
       </Link>
-      <div className="bg-[#111638] border border-[#1e2450] rounded-xl p-6 text-center">
-        <h3 className="text-lg font-semibold mb-2">QR Code Check-in</h3>
-        <p className="text-sm text-gray-400 mb-6">
-          Cetak dan pasang QR ini di meja registrasi. Peserta scan pakai HP untuk check-in.
-        </p>
 
-        <div className="bg-white rounded-xl p-6 inline-block mb-4">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(checkinUrl)}`}
-            alt="QR Code Check-in"
-            width={250}
-            height={250}
-          />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <QrCard
+          title="QR Check-in"
+          description="Pasang di meja registrasi. Peserta scan untuk absensi."
+          url={checkinUrl}
+          slug={slug}
+          filePrefix="qr-checkin"
+          steps={[
+            "Peserta scan QR check-in",
+            "Input No WhatsApp terdaftar",
+            "Konfirmasi hadir",
+          ]}
+        />
+        <QrCard
+          title="QR Feedback"
+          description="Pasang di akhir acara. Peserta scan untuk isi penilaian."
+          url={feedbackUrl}
+          slug={slug}
+          filePrefix="qr-feedback"
+          steps={[
+            "Peserta scan QR feedback",
+            "Input No WhatsApp yang sudah check-in",
+            "Isi rating 1-5 dan komentar",
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+function FeedbackReportTab({ eventId }: { eventId: string }) {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{
+    total: number;
+    avgRating: number;
+    ratingBreakdown: Array<{ rating: number; count: number }>;
+    items: Array<{ id: string; rating: number; komentar: string | null; waktuIsi: string; nama: string; noWa: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/events/${eventId}/feedback`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [eventId]);
+
+  if (loading) return <p className="text-sm text-[#718096]">Memuat feedback...</p>;
+  if (!data) return <p className="text-sm text-[#b24b4b]">Gagal memuat feedback.</p>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow mb-1">Masukan peserta</p>
+          <h2 className="text-xl font-bold tracking-tight">Laporan Feedback</h2>
         </div>
+        <a
+          href={`/api/events/${eventId}/feedback/export`}
+          target="_blank"
+          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#147d64] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#0f654f]"
+        >
+          Export Excel
+        </a>
+      </div>
 
-        <p className="text-xs text-gray-500 font-mono mb-6 break-all">{checkinUrl}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="admin-card p-4 text-center"><p className="text-3xl font-bold">{data.total}</p><p className="text-sm text-[#718096]">Total Feedback</p></div>
+        <div className="admin-card p-4 text-center"><p className="text-3xl font-bold text-[#176b87]">{data.avgRating || "-"}</p><p className="text-sm text-[#718096]">Rata-rata Rating</p></div>
+        <div className="admin-card p-4 text-center"><p className="text-3xl font-bold text-[#147d64]">{data.ratingBreakdown.find((r) => r.rating === 5)?.count || 0}</p><p className="text-sm text-[#718096]">Rating 5</p></div>
+      </div>
 
-       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
-            onClick={handlePrint}
-            className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-          >
-            Cetak QR Code
-          </button>
-          <a
-            href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(checkinUrl)}&format=png`}
-            download={`qr-checkin-${slug}.png`}
-            className="bg-[#1e2450] hover:bg-[#2a3060] px-6 py-2 rounded-lg text-sm transition-colors"
-          >
-            Download PNG
-          </a>
+      <div className="admin-card p-4 sm:p-5">
+        <h3 className="mb-3 font-semibold">Breakdown rating</h3>
+        <div className="space-y-2">
+          {data.ratingBreakdown.map((item) => (
+            <div key={item.rating} className="flex items-center gap-3 text-sm">
+              <span className="w-12 font-semibold">{item.rating} ★</span>
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e8eef3]">
+                <div className="h-full rounded-full bg-[#176b87]" style={{ width: `${data.total ? (item.count / data.total) * 100 : 0}%` }} />
+              </div>
+              <span className="w-8 text-right text-[#718096]">{item.count}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="mt-6 bg-[#111638] border border-[#1e2450] rounded-xl p-4">
-        <h4 className="text-sm font-medium mb-3">Alur Check-in di Lokasi:</h4>
-        <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside">
-          <li>Panitia pasang QR statis di meja registrasi</li>
-          <li>Peserta datang, scan QR pakai HP sendiri (disupervisi panitia)</li>
-          <li>Peserta input No WhatsApp yang didaftarkan</li>
-          <li>Sistem tampilkan nama peserta untuk konfirmasi</li>
-          <li>Peserta klik &quot;Konfirmasi Hadir&quot;</li>
-          <li>Kalau nomor tidak ketemu, panitia bisa manual check-in dari tab Peserta</li>
-        </ol>
-      </div>
+      {data.items.length === 0 ? (
+        <div className="admin-card p-8 text-center text-sm text-[#718096]">Belum ada feedback masuk.</div>
+      ) : (
+        <div className="grid gap-3">
+          {data.items.map((item) => (
+            <article key={item.id} className="admin-card p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-bold">{item.nama}</p>
+                  <p className="mt-1 font-mono text-xs text-[#718096]">{item.noWa}</p>
+                </div>
+                <span className="rounded-full bg-[#e8f4f7] px-2.5 py-1 text-xs font-bold text-[#176b87]">{item.rating} / 5</span>
+              </div>
+              {item.komentar && <p className="mt-3 text-sm leading-6 text-[#526176]">{item.komentar}</p>}
+              <p className="mt-3 text-xs text-[#8a98a8]">{new Date(item.waktuIsi).toLocaleString("id-ID")}</p>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

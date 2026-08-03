@@ -24,7 +24,7 @@ export async function GET() {
     "Sumber Informasi": p.sumberInformasi || "",
     "Total Event": p.registrasi.length,
     "Total Hadir": p.registrasi.filter((r) => r.status === "HADIR").length,
-    Terdaftar: new Date(p.createdAt).toLocaleString("id-ID"),
+    Terdaftar: new Date(p.createdAt).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", hour12: false }),
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);

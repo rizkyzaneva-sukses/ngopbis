@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
+import { parseWibDateTime } from "@/lib/utils";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -42,8 +43,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (deskripsi !== undefined) data.deskripsi = deskripsi;
     if (lokasi !== undefined) data.lokasi = lokasi;
     if (googleMapsUrl !== undefined) data.googleMapsUrl = googleMapsUrl;
-    if (tanggalMulai !== undefined) data.tanggalMulai = new Date(tanggalMulai);
-    if (tanggalSelesai !== undefined) data.tanggalSelesai = tanggalSelesai ? new Date(tanggalSelesai) : null;
+    if (tanggalMulai !== undefined) {
+      const mulai = parseWibDateTime(tanggalMulai);
+      if (!mulai) {
+        return NextResponse.json({ error: "Format tanggal mulai tidak valid" }, { status: 400 });
+      }
+      data.tanggalMulai = mulai;
+    }
+    if (tanggalSelesai !== undefined) {
+      if (!tanggalSelesai) {
+        data.tanggalSelesai = null;
+      } else {
+        const selesai = parseWibDateTime(tanggalSelesai);
+        if (!selesai) {
+          return NextResponse.json({ error: "Format tanggal selesai tidak valid" }, { status: 400 });
+        }
+        data.tanggalSelesai = selesai;
+      }
+    }
     if (bannerUrl !== undefined) data.bannerUrl = bannerUrl;
     if (warnaAksen !== undefined) data.warnaAksen = warnaAksen;
     if (kuota !== undefined) data.kuota = kuota ? parseInt(kuota) : null;

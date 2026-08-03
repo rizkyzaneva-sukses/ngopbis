@@ -203,6 +203,7 @@ export default function EventsPage() {
                       <h2 className="font-semibold text-lg truncate">{event.nama}</h2>
                       <p className="text-gray-400 text-sm mt-1">
                         {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
+                          timeZone: "Asia/Jakarta",
                           weekday: "long",
                           day: "numeric",
                           month: "long",

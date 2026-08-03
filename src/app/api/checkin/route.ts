@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   if (registrasi.status === "HADIR") {
     const waktu = registrasi.waktuHadir
-      ? new Date(registrasi.waktuHadir).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+      ? new Date(registrasi.waktuHadir).toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false })
       : "";
     return NextResponse.json({
       status: "ALREADY_CHECKED_IN",

@@ -98,6 +98,7 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
             <div className="min-w-0 text-[#152238]">
               <p className="font-semibold">
                 {new Date(event.tanggalMulai).toLocaleDateString("id-ID", {
+                  timeZone: "Asia/Jakarta",
                   weekday: "long",
                   day: "numeric",
                   month: "long",
@@ -105,9 +106,9 @@ export default function EventLandingPage({ params }: { params: Promise<{ slug: s
                 })}
               </p>
               <p className="mt-1 text-sm text-[#718096]">
-                Pukul {new Date(event.tanggalMulai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+                Pukul {new Date(event.tanggalMulai).toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false })} WIB
                 {event.tanggalSelesai && (
-                  <> - {new Date(event.tanggalSelesai).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB</>
+                  <> - {new Date(event.tanggalSelesai).toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false })} WIB</>
                 )}
               </p>
             </div>

@@ -9,6 +9,7 @@ import {
   DEFAULT_TEMPLATE_REMINDER,
   type NotifConfig,
 } from "@/lib/whatsapp";
+import { formatDateTime } from "@/lib/utils";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const template = (event.notifConfig as NotifConfig | null)?.templateReminder || DEFAULT_TEMPLATE_REMINDER;
-  const tanggal = new Date(event.tanggalMulai).toLocaleString("id-ID");
+  const tanggal = formatDateTime(event.tanggalMulai) + " WIB";
   const lokasi = event.lokasi || "-";
 
   const regs = await getPrisma().registrasi.findMany({

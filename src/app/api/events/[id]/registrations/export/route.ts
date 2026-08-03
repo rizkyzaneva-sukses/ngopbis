@@ -38,8 +38,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       "Status Keanggotaan": reg.peserta.statusKeanggotaan || "",
       "Sumber Informasi": reg.peserta.sumberInformasi || "",
       Status: reg.status,
-      "Waktu Daftar": reg.waktuDaftar ? new Date(reg.waktuDaftar).toLocaleString("id-ID") : "",
-      "Waktu Hadir": reg.waktuHadir ? new Date(reg.waktuHadir).toLocaleString("id-ID") : "",
+      "Waktu Daftar": reg.waktuDaftar ? new Date(reg.waktuDaftar).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", hour12: false }) : "",
+      "Waktu Hadir": reg.waktuHadir ? new Date(reg.waktuHadir).toLocaleString("id-ID", { timeZone: "Asia/Jakarta", hour12: false }) : "",
     };
 
     for (const q of event.questions) {

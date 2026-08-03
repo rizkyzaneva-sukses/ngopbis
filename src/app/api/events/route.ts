@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { logAudit } from "@/lib/audit";
-import { generateSlug } from "@/lib/utils";
+import { generateSlug, parseWibDateTime } from "@/lib/utils";
 
 export async function GET() {
   const session = await getSession();
@@ -33,6 +33,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Nama dan tanggal mulai wajib diisi" }, { status: 400 });
   }
 
+  const mulai = parseWibDateTime(tanggalMulai);
+  if (!mulai) {
+    return NextResponse.json({ error: "Format tanggal mulai tidak valid" }, { status: 400 });
+  }
+  const selesai = tanggalSelesai ? parseWibDateTime(tanggalSelesai) : null;
+  if (tanggalSelesai && !selesai) {
+    return NextResponse.json({ error: "Format tanggal selesai tidak valid" }, { status: 400 });
+  }
+
   let slug = customSlug || generateSlug(nama);
   const existingSlug = await getPrisma().event.findUnique({ where: { slug } });
   if (existingSlug) {
@@ -46,8 +55,8 @@ export async function POST(req: NextRequest) {
       deskripsi: deskripsi || null,
       lokasi: lokasi || null,
       googleMapsUrl: googleMapsUrl || null,
-      tanggalMulai: new Date(tanggalMulai),
-      tanggalSelesai: tanggalSelesai ? new Date(tanggalSelesai) : null,
+      tanggalMulai: mulai,
+      tanggalSelesai: selesai,
       bannerUrl: bannerUrl || null,
       warnaAksen: warnaAksen || "#2563eb",
       kuota: kuota ? parseInt(kuota) : null,

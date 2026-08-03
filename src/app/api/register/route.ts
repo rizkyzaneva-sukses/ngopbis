@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/lib/prisma";
-import { formatNoWa, validateNoWa } from "@/lib/utils";
+import { formatDateTime, formatNoWa, validateNoWa } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { sendWhatsAppMessage, renderTemplate, DEFAULT_TEMPLATE_KONFIRMASI, type NotifConfig } from "@/lib/whatsapp";
 
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
         const text = renderTemplate(template, {
           nama,
           event: event.nama,
-          tanggal: new Date(event.tanggalMulai).toLocaleString("id-ID"),
+          tanggal: formatDateTime(event.tanggalMulai) + " WIB",
           lokasi: event.lokasi || "-",
         });
         sendWhatsAppMessage(normalizedNoWa, text).catch(() => {});
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
       const text = renderTemplate(template, {
         nama,
         event: event.nama,
-        tanggal: new Date(event.tanggalMulai).toLocaleString("id-ID"),
+        tanggal: formatDateTime(event.tanggalMulai) + " WIB",
         lokasi: event.lokasi || "-",
       });
       sendWhatsAppMessage(normalizedNoWa, text).catch(() => {});

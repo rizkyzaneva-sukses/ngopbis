@@ -72,12 +72,14 @@ export default function NewEventPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Tanggal Mulai *</label>
+            <label className="block text-sm text-gray-400 mb-1">Tanggal Mulai * (WIB)</label>
             <input name="tanggalMulai" type="datetime-local" required className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+            <p className="mt-1 text-[11px] text-gray-500">Waktu dalam WIB (UTC+7)</p>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Tanggal Selesai</label>
+            <label className="block text-sm text-gray-400 mb-1">Tanggal Selesai (WIB)</label>
             <input name="tanggalSelesai" type="datetime-local" className="w-full bg-[#111638] border border-[#1e2450] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500" />
+            <p className="mt-1 text-[11px] text-gray-500">Waktu dalam WIB (UTC+7)</p>
           </div>
         </div>
 

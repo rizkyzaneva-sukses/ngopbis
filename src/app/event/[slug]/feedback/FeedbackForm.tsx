@@ -87,7 +87,7 @@ export default function FeedbackForm({ slug }: { slug: string }) {
                 required
                 className="field-input text-center text-lg tracking-wider"
               />
-              <p className="mt-2 text-xs text-[#718096]">Gunakan nomor yang didaftarkan dan sudah check-in.</p>
+              <p className="mt-2 text-xs text-[#718096]">Masukkan No WA yang dipakai saat pendaftaran.</p>
             </div>
 
             <div>
